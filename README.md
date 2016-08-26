@@ -1,2 +1,2 @@
-# Computer Science 329 Project 1: Facial Recognition
+# CS329 Project 1: Facial Recognition
 

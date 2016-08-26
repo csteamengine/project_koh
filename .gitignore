@@ -1,0 +1,80 @@
+# RECOMMENDED BY GITHUB #
+#########################
+
+# Compiled source #
+###################
+*.com
+*.class
+*.dll
+*.exe
+*.o
+*.so
+
+# Packages #
+############
+# it's better to unpack these files and commit the raw source
+# git has its own built in compression methods
+*.7z
+*.dmg
+*.gz
+*.iso
+*.jar
+*.rar
+*.tar
+*.zip
+
+# Logs and databases #
+######################
+*.log
+*.sql
+*.sqlite
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# IDE SPECIFIC IGNORES #
+########################
+.idea/
+
+# OTHER IGNORES #
+#################
+bin/
+*.war
+*.ear
+*.iml
+
+# DART SPECIFIC IGNORES #
+# See https://www.dartlang.org/tools/private-files.html #
+#########################################################
+
+# Files and directories created by pub
+.buildlog
+.packages
+.project
+.pub/
+build/
+**/packages/
+
+# Files created by dart2js
+# (Most Dart developers will use pub build to compile Dart, use/modify these
+#  rules if you intend to use dart2js directly
+#  Convention is to use extension '.dart.js' for Dart compiled to Javascript to
+#  differentiate from explicit Javascript files)
+*.part.js
+*.js.deps
+*.js.map
+*.info.json
+
+# Directory created by dartdoc
+doc/api/
+
+# Don't commit pubspec lock file
+# (Library packages only! Remove pattern if developing an application package)
+pubspec.lock

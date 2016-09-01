@@ -1,2 +1,2 @@
-# CS329 Project 1: Facial Recognition
+# SE329 Project 1: Facial Recognition
 

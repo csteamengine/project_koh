@@ -98,3 +98,12 @@ International Justice League of Super Acquaintances
 - Gregory Steenhagen
 
 ![International Justice League of Super Acquaintances](IJLSA.jpg)
+
+# Frameworks
+    - Socket IO - Javascript socket framework.
+        - To use, first install nodeJS
+        - Then run
+            ```
+            npm install socket.io
+            ```
+

@@ -16,7 +16,8 @@ class MyTCPHandler(socketserver.BaseRequestHandler):
         print(self.data)
         # just send back the same data, but upper-cased
         # self.request.sendall(self.data.upper())
-        self.request.send('Hello from the other side!!!!')
+        message = "Hello From the other side!!!"
+        self.request.send(message.encode())
 
 if __name__ == "__main__":
     HOST, PORT = "localhost", 8000

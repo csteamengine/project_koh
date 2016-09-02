@@ -6,7 +6,12 @@
 </head>
 <body>
 <script>
-    var connection = new WebSocket('ws://localhost:8000');
+    var ws = new WebSocket("ws://localhost:9999/");
+    ws.onopen = function() {
+        ws.send("Hello Mr. Server!");
+    };
+    ws.onmessage = function (e) { alert(e.data); };
+    ws.onclose = function() { };
 </script>
 </body>
 </html>

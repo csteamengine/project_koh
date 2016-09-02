@@ -1,29 +1,45 @@
-import SocketServer
+import socket
+sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+sock.bind(("", 9999))
+sock.listen(5)
 
+handshake = '\
+HTTP/1.1 101 Web Socket Protocol Handshake\r\n\
+Upgrade: WebSocket\r\n\
+Connection: Upgrade\r\n\
+WebSocket-Origin: http://localhost:8888\r\n\
+WebSocket-Location: ws://localhost:9999/\r\n\r\n\
+'
+handshaken = False
 
-class MyTCPHandler(SocketServer.BaseRequestHandler):
-    """
-    The RequestHandler class for our server.
+print("TCPServer Waiting for client on port 9999")
 
-    It is instantiated once per connection to the server, and must
-    override the handle() method to implement communication to the
-    client.
-    """
+import sys
 
-    def handle(self):
-        # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(1024).strip()
-        print(self.data)
-        # just send back the same data, but upper-cased
-        # self.request.sendall(self.data.upper())
-        self.request.send('Hello from the other side!!!!')
+data = ''
+header = ''
 
-if __name__ == "__main__":
-    HOST, PORT = "localhost", 8000
+client, address = sock.accept()
+while True:
+    if handshaken == False:
+        header += client.recv(16)
+        if header.find('\r\n\r\n') != -1:
+            data = header.split('\r\n\r\n', 1)[1]
+            handshaken = True
+            client.send(handshake)
+    else:
+            tmp = client.recv(128)
+            data += tmp;
 
-    # Create the server, binding to localhost on port 8000
-    server = SocketServer.TCPServer((HOST, PORT), MyTCPHandler)
+            validated = []
 
-    # Activate the server; this will keep running until you
-    # interrupt the program with Ctrl-C
-    server.serve_forever()
+            msgs = data.split('\xff')
+            data = msgs.pop()
+
+            for msg in msgs:
+                if msg[0] == '\x00':
+                    validated.append(msg[1:])
+
+            for v in validated:
+                print(v)
+                client.send('\x00' + v + '\xff')

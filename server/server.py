@@ -6,7 +6,7 @@ import os, uuid
 from tornado.options import define, options, parse_command_line
 
 define("port", default=8888, help="run on the given port", type=int)
-__UPLOADS__ = "upload/"
+__UPLOADS__ = "uploads/"
 # we gonna store clients in dictionary..
 clients = dict()
 
@@ -53,7 +53,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
 app = tornado.web.Application([
     (r'/', IndexHandler),
     (r'/websocket', WebSocketHandler),
-    (r'/upload', Upload)
+    (r'/uploads', Upload)
 ])
 
 if __name__ == '__main__':

@@ -3,6 +3,7 @@ import tornado.web
 import tornado.websocket
 import os, uuid
 
+
 from tornado.options import define, options, parse_command_line
 
 define("port", default=8888, help="run on the given port", type=int)
@@ -26,7 +27,9 @@ class Upload(tornado.web.RequestHandler):
         cname = str(uuid.uuid4()) + extn
         fh = open(__UPLOADS__ + cname, 'wb')
         fh.write(fileinfo['body'])
-        self.render("../client/index.html")
+        self.redirect("/")      # Sends the url back to the main page for websockets sake
+
+        # self.render("../client/index.html")
         # self.finish(cname + " is uploaded!! Check %s folder" %__UPLOADS__)
 
 
@@ -42,19 +45,22 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         for this example i will just print message to console
         """
         print("Client %s received a message : %s" % (self.id, message))
-        self.write_message("Hello Client!")
+        self.write_message("Connected")
 
     def on_close(self):
         if self.id in clients:
             del clients[self.id]
 
-
+settings = {
+    "static_path": os.path.join(os.path.dirname(__file__), "static"),
+}
 # This part is the key to success. We have to redirect the websocket calls to a different URL ex//: /websocket
 app = tornado.web.Application([
     (r'/', IndexHandler),
     (r'/websocket', WebSocketHandler),
-    (r'/uploads', Upload)
-])
+    (r'/uploads', Upload),
+    (r"/(apple-touch-icon\.png)", tornado.web.StaticFileHandler, dict(path=settings['static_path']))
+], **settings)
 
 if __name__ == '__main__':
     parse_command_line()

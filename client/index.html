@@ -9,11 +9,9 @@
     </head>
     <body>
     <h1>Websocket connection</h1>
-    <form enctype="multipart/form-data" action="/uploads" method="post" id="file_form">
-        File: <input type="file" name="filearg" id="upload_file" />
-        <br />
-        <br />
-        <input type="submit" value="upload" id="submit_file"/>
+    <form id="file-form" action="handler.php" method="POST">
+        <input type="file" id="file-select" name="photo" multiple/>
+        <button type="submit" id="upload-button">Upload</button>
     </form>
         <a href="javascript:WebSocketTest()">Run WebSocket</a>
     </body>
@@ -27,24 +25,44 @@
                 console.log(evt.data);
             };
         };
-//        function WebSocketTest() {
-//            if ("WebSocket" in window) {
-//                console.log("WebSocket is supported by your Browser!");
-//                var ws = new WebSocket("ws://localhost:8888/websocket?Id=123456789");
-//                ws.onopen = function() {
-//                    ws.send("Message to send");
-//                };
-//                ws.onmessage = function (evt) {
-//                    var received_msg = evt.data;
-//                    console.log(evt.data);
-//                };
-//                ws.onclose = function() {
-//                    console.log("Connection is closed...");
-//                };
-//            } else {
-//                console.log("WebSocket NOT supported by your Browser!");
-//            }
-//        }
+        var form = document.getElementById('file-form');
+        var fileSelect = document.getElementById('file-select');
+        var uploadButton = document.getElementById('upload-button');
+        form.onsubmit = function(event) {
+            event.preventDefault();
+
+            // Update button text.
+            uploadButton.innerHTML = 'Uploading...';
+
+            // Get the selected files from the input.
+            var file = fileSelect.files[0];
+
+
+            // Create a new FormData object.
+            var formData = new FormData(form);
+//            console.log(file);
+            formData.append('file',file);
+
+            var xhr = new XMLHttpRequest();
+
+            // Open the connection.
+            xhr.open('POST', 'http://localhost:8888/uploads', true);
+
+            // Set up a handler for when the request finishes.
+            xhr.onload = function () {
+                if (xhr.status === 200) {
+                    // File(s) uploaded.
+                    uploadButton.innerHTML = 'Upload';
+                } else {
+                    alert('An error occurred!');
+                }
+            };
+
+            // Send the Data.
+            xhr.send(formData);
+
+        }
+
 
     </script>
 </html>

@@ -20,14 +20,14 @@ class IndexHandler(tornado.web.RequestHandler):
 
 class Upload(tornado.web.RequestHandler):
     def post(self):
-        fileinfo = self.request.files['filearg'][0]
+        fileinfo = self.request.file
         print("fileinfo is", fileinfo)
         fname = fileinfo['filename']
         extn = os.path.splitext(fname)[1]
         cname = str(uuid.uuid4()) + extn
         fh = open(__UPLOADS__ + cname, 'wb')
         fh.write(fileinfo['body'])
-        self.redirect("/")      # Sends the url back to the main page for websockets sake
+        # self.redirect("/")      # Sends the url back to the main page for websockets sake
 
         # self.render("../client/index.html")
         # self.finish(cname + " is uploaded!! Check %s folder" %__UPLOADS__)

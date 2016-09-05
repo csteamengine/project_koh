@@ -8,6 +8,7 @@ from tornado.options import define, options, parse_command_line
 
 define("port", default=8888, help="run on the given port", type=int)
 __UPLOADS__ = "uploads/"
+__ASYNC_UPLOAD__ = "async_upload/";
 # we gonna store clients in dictionary..
 clients = dict()
 
@@ -20,15 +21,14 @@ class IndexHandler(tornado.web.RequestHandler):
 
 class Upload(tornado.web.RequestHandler):
     def post(self):
-        fileinfo = self.request.file
+        fileinfo = self.request.files['filearg'][0]
         print("fileinfo is", fileinfo)
         fname = fileinfo['filename']
         extn = os.path.splitext(fname)[1]
         cname = str(uuid.uuid4()) + extn
         fh = open(__UPLOADS__ + cname, 'wb')
         fh.write(fileinfo['body'])
-        # self.redirect("/")      # Sends the url back to the main page for websockets sake
-
+        self.redirect("/")      # Sends the url back
         # self.render("../client/index.html")
         # self.finish(cname + " is uploaded!! Check %s folder" %__UPLOADS__)
 
@@ -45,11 +45,26 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         for this example i will just print message to console
         """
         print("Client %s received a message : %s" % (self.id, message))
-        self.write_message("Connected")
+        self.write_message("Hello Client!")
 
     def on_close(self):
         if self.id in clients:
             del clients[self.id]
+
+
+class AsyncUpload(tornado.web.RequestHandler):
+    def post(self):
+        fileinfo = self.request.files['filearg'][0]
+        print("fileinfo is", fileinfo)
+        fname = fileinfo['filename']
+        extn = os.path.splitext(fname)[1]
+        cname = str(uuid.uuid4()) + extn
+        fh = open(__ASYNC_UPLOAD__ + cname, 'wb')
+        fh.write(fileinfo['body'])
+        self.redirect("/")  # Sends the url back
+        # self.render("../client/index.html")
+        # self.finish(cname + " is uploaded!! Check %s folder" %__UPLOADS__)
+
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
@@ -59,7 +74,8 @@ app = tornado.web.Application([
     (r'/', IndexHandler),
     (r'/websocket', WebSocketHandler),
     (r'/uploads', Upload),
-    (r"/(apple-touch-icon\.png)", tornado.web.StaticFileHandler, dict(path=settings['static_path']))
+    (r"/(apple-touch-icon\.png)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
+    (r'/async_upload', AsyncUpload)
 ], **settings)
 
 if __name__ == '__main__':

@@ -15,11 +15,9 @@
         <br />
         <input type="submit" value="upload" />
     </form>
-    <form enctype="multipart/form-data" action="/async_upload" method="post">
-        File: <input type="file" name="filearg" />
-        <br />
-        <br />
-        <input type="submit" value="upload" />
+    <form id="form1" runat="server">
+        <input type='file' id="imgInp" />
+        <img id="blah" src="#" alt="your image" />
     </form>
 
     <h1>Websocket connection</h1>
@@ -34,6 +32,32 @@
             ws.onmessage = function(evt){
                 console.log(evt.data);
             };
+
+//            $('#async_form').submit(function(e){
+//                e.preventDefault();
+//                readURL($('#imgInp'))
+//            });
+            function readURL(input) {
+
+                if (input.files && input.files[0]) {
+                    var reader = new FileReader();
+
+                    reader.onload = function (e) {
+//                         console.log(e.target.result);
+//                        $('#blah').attr('src', e.target.result);
+                        var image_ws = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
+                        image_ws.onopen = function(){
+                            image_ws.send(e.target.result);
+                        };
+                    };
+                    reader.readAsDataURL(input.files[0]);
+                }
+            }
+
+            $("#imgInp").change(function(){
+                readURL(this);
+            });
+
         };
 
 

@@ -2,7 +2,7 @@ import tornado.ioloop
 import tornado.web
 import tornado.websocket
 import os, uuid
-
+import base64
 
 from tornado.options import define, options, parse_command_line
 
@@ -52,18 +52,27 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             del clients[self.id]
 
 
-class AsyncUpload(tornado.web.RequestHandler):
-    def post(self):
-        fileinfo = self.request.files['filearg'][0]
-        print("fileinfo is", fileinfo)
-        fname = fileinfo['filename']
-        extn = os.path.splitext(fname)[1]
-        cname = str(uuid.uuid4()) + extn
-        fh = open(__ASYNC_UPLOAD__ + cname, 'wb')
-        fh.write(fileinfo['body'])
-        self.redirect("/")  # Sends the url back
-        # self.render("../client/index.html")
-        # self.finish(cname + " is uploaded!! Check %s folder" %__UPLOADS__)
+class WebsocketImage(tornado.websocket.WebSocketHandler):
+    def open(self, *args):
+        self.id = self.get_argument("Id")
+        self.stream.set_nodelay(True)
+        clients[self.id] = {"id": self.id, "object": self}
+
+    def on_message(self, message):
+        jpgtxt = base64.encodestring(open("in.jpg","rb").read())
+
+        f = open("jpg1_b64.txt", "w")
+        f.write(jpgtxt)
+        f.close()
+        newjpgtxt = open("jpg1_b64.txt", "rb").read()
+
+        g = open(__UPLOADS__ + "out.jpg", "w")
+        g.write(base64.decodestring(newjpgtxt))
+        g.close()
+
+    def on_close(self):
+        if self.id in clients:
+            del clients[self.id]
 
 
 settings = {
@@ -75,7 +84,7 @@ app = tornado.web.Application([
     (r'/websocket', WebSocketHandler),
     (r'/uploads', Upload),
     (r"/(apple-touch-icon\.png)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
-    (r'/async_upload', AsyncUpload)
+    (r'/websocket_image', WebSocketHandler)
 ], **settings)
 
 if __name__ == '__main__':

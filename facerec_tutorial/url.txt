@@ -1,0 +1,1 @@
+http://docs.opencv.org/2.4/modules/contrib/doc/facerec/facerec_tutorial.html

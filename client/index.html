@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+
+
+<html>
+<head>
+
+    <meta charset="utf-8">
+    <title>Client-Server Websocket</title>
+    <link rel="stylesheet" href="/static/test.css">
+    <script src="/static/jquery-3.1.0.min.js" type="application/javascript"></script>
+
+    <script type="text/javascript">
+        function WebSocketTest() {
+            if ("WebSocket" in window) {
+                alert("WebSocket is supported by your Browser!");
+
+                // Let us open a web socket
+                var ws = new WebSocket("ws://localhost:8000");
+
+                ws.onopen = function () {
+                    // Web Socket is connected, send data using send()
+                    ws.send("Message to send");
+                    alert("Message is sent...");
+                };
+
+                ws.onmessage = function (evt) {
+                    var received_msg = evt.data;
+                    alert("Message is received...");
+                };
+
+                ws.onclose = function () {
+                    // websocket is closed.
+                    alert("Connection is closed...");
+                };
+            }
+
+            else {
+                // The browser doesn't support WebSocket
+                alert("WebSocket NOT supported by your Browser!");
+            }
+        }
+    </script>
+
+    <script src="/static/js/webcam.js"></script>
+</head>
+<body>
+
+<form id="form1" >
+    <input type='file' id="imgInp"/>
+    <input type="submit" value="Upload">
+    <img id="blah" src="#" alt="your image" style="height: 100px; width: 100px;"/>
+</form>
+
+<h1>Websocket connection</h1>
+<a href="javascript:WebSocketTest()">Run WebSocket</a>
+
+<div id="my_camera" style="width:320px; height:240px;"></div>
+    <div id="my_result"></div>
+
+    <script language="JavaScript">
+        Webcam.attach( '#my_camera' );
+
+        function take_snapshot() {
+            Webcam.snap( function(data_uri) {
+                document.getElementById('my_result').innerHTML = '<img id="result_image" src="'+data_uri+'"/>';
+            } );
+
+        }
+    </script>
+
+    <a id="take_snapshot" href="javascript:void(take_snapshot())">Take Snapshot</a>
+    <button id="webcam_identify" onclick="send_webcam_photo()" hidden>Identify</button>
+</body>
+<script type="text/javascript">
+    window.onload = function () {
+        var ws = new WebSocket("ws://localhost:8888/websocket?Id=123456789");
+        ws.onopen = function () {
+            ws.send("Connected");
+        };
+        ws.onmessage = function (evt) {
+            console.log(evt.data);
+        };
+
+    };
+
+    $('#take_snapshot').click(function(){
+        $('#webcam_identify').show();
+    });
+
+    $("#form1").submit(function (e) {
+        e.preventDefault();
+        readURL();
+    });
+
+    $('#imgInp').change(function (){
+       changeImg(this);
+    });
+
+    function changeImg(input) {
+        if (input.files && input.files[0]) {
+            var reader = new FileReader();
+
+            reader.onload = function (e) {
+                $('#blah').attr('src', e.target.result);
+            };
+
+            reader.readAsDataURL(input.files[0]);
+        }
+    }
+    function send_webcam_photo(){
+        var string = $('#result_image').attr('src') + ",webcamPhoto.jpg" ;
+        var image_ws = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
+        image_ws.onopen = function(){
+            image_ws.send(string);
+        };
+        image_ws.onmessage = function(evt){
+            console.log(evt.data);
+        };
+    }
+
+    function readURL() {
+        var input = $('#blah').attr('src') + ",webcamPhoto.jpg";
+        var image_ws_upload = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
+        image_ws_upload.onopen = function () {
+            image_ws_upload.send(input);
+        };
+        image_ws_upload.onmessage = function(evt){
+            console.log(evt.data);
+        };
+
+    }
+
+
+</script>
+</html>

@@ -7,8 +7,8 @@ import base64
 from tornado.options import define, options, parse_command_line
 
 define("port", default=8888, help="run on the given port", type=int)
-__UPLOADS__ = "uploads/"
-__ASYNC_UPLOAD__ = "async_upload/";
+__UPLOADS__ = "/uploads/"
+__ASYNC_UPLOAD__ = "/async_upload/"
 # we gonna store clients in dictionary..
 clients = dict()
 
@@ -16,7 +16,7 @@ clients = dict()
 class IndexHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
-        self.render(os.path.dirname(__file__).replace("server",'') + 'client/index.html')
+        self.render(os.path.dirname(__file__) + '/client/index.html')
 
 
 class Upload(tornado.web.RequestHandler):
@@ -26,7 +26,7 @@ class Upload(tornado.web.RequestHandler):
         fname = fileinfo['filename']
         extn = os.path.splitext(fname)[1]
         cname = str(uuid.uuid4()) + extn
-        fh = open(__UPLOADS__ + cname, 'wb')
+        fh = open(os.path.dirname(__file__) + __UPLOADS__ + cname, 'wb')
         fh.write(fileinfo['body'])
         self.redirect("/")      # Sends the url back
         # self.render("../client/index.html")
@@ -63,7 +63,7 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
         fname= message[2]
         extn = os.path.splitext(fname)[1]
         cname = str(uuid.uuid4()) + extn
-        with open(__UPLOADS__ + cname, "wb") as fh:
+        with open(os.path.dirname(__file__) + __UPLOADS__ + cname, "wb") as fh:
             fh.write(base64.b64decode(message[1]))
 
 

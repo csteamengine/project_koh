@@ -16,7 +16,7 @@ clients = dict()
 class IndexHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
-        self.render("../client/index.html")
+        self.render("../client/html/index.html")
 
 
 class Upload(tornado.web.RequestHandler):
@@ -60,7 +60,6 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):
         message = message.split(',')
-        print(message[0])
         fname= message[2]
         extn = os.path.splitext(fname)[1]
         cname = str(uuid.uuid4()) + extn

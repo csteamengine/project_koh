@@ -74,6 +74,7 @@ build/
 
 # Directory created by dartdoc
 doc/api/
+server/uploads/*
 
 # Don't commit pubspec lock file
 # (Library packages only! Remove pattern if developing an application package)

@@ -4,9 +4,11 @@
 
 ## Install PyCharm by Jetbrains
   - [Install](https://www.jetbrains.com/pycharm/download/)
+
 ## Download Python
   - [Download](https://www.python.org/downloads/)
   - Make sure to install Python 3.5.2!
+
 ## Install tornado python API
   - [Install](http://www.tornadoweb.org/en/stable/index.html)
   - Make sure to install the python3 version of tornado

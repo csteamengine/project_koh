@@ -1,4 +1,5 @@
 <!DOCTYPE html>
+<<<<<<< HEAD
 <!--<html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -12,52 +13,99 @@
 </html>-->
 
 <html>
-   <head>
+<head>
 
-      <script type="text/javascript">
-         function WebSocketTest()
-         {
-            if ("WebSocket" in window)
-            {
-               alert("WebSocket is supported by your Browser!");
+    <meta charset="utf-8">
+    <title>Client-Server Websocket</title>
+    <link rel="stylesheet" href="/static/test.css">
+    <script src="/static/jquery-3.1.0.min.js" type="application/javascript"></script>
 
-               // Let us open a web socket
-               var ws = new WebSocket("ws://localhost:8000");
+    <script type="text/javascript">
+        function WebSocketTest() {
+            if ("WebSocket" in window) {
+                alert("WebSocket is supported by your Browser!");
 
-               ws.onopen = function()
-               {
-                  // Web Socket is connected, send data using send()
-                  ws.send("Message to send");
-                  alert("Message is sent...");
-               };
+                // Let us open a web socket
+                var ws = new WebSocket("ws://localhost:8000");
 
-               ws.onmessage = function (evt)
-               {
-                  var received_msg = evt.data;
-                  alert("Message is received...");
-               };
+                ws.onopen = function () {
+                    // Web Socket is connected, send data using send()
+                    ws.send("Message to send");
+                    alert("Message is sent...");
+                };
 
-               ws.onclose = function()
-               {
-                  // websocket is closed.
-                  alert("Connection is closed...");
-               };
+                ws.onmessage = function (evt) {
+                    var received_msg = evt.data;
+                    alert("Message is received...");
+                };
+
+                ws.onclose = function () {
+                    // websocket is closed.
+                    alert("Connection is closed...");
+                };
             }
 
-            else
-            {
-               // The browser doesn't support WebSocket
-               alert("WebSocket NOT supported by your Browser!");
+            else {
+                // The browser doesn't support WebSocket
+                alert("WebSocket NOT supported by your Browser!");
             }
-         }
-      </script>
+        }
+    </script>
 
-   </head>
-   <body>
+</head>
+<body>
 
-      <div id="sse">
-         <a href="javascript:WebSocketTest()">Run WebSocket</a>
-      </div>
+<form enctype="multipart/form-data" action="/uploads" method="post">
+    File: <input type="file" name="filearg"/>
+    <br/>
+    <br/>
+    <input type="submit" value="upload"/>
+</form>
+<form id="form1" runat="server">
+    <input type='file' id="imgInp"/>
+    <img id="blah" src="#" alt="your image"/>
+</form>
 
-   </body>
+<h1>Websocket connection</h1>
+<a href="javascript:WebSocketTest()">Run WebSocket</a>
+</body>
+<script type="text/javascript">
+    window.onload = function () {
+        var ws = new WebSocket("ws://localhost:8888/websocket?Id=123456789");
+        ws.onopen = function () {
+            ws.send("Connected");
+        };
+        ws.onmessage = function (evt) {
+            console.log(evt.data);
+        };
+
+//            $('#async_form').submit(function(e){
+//                e.preventDefault();
+//                readURL($('#imgInp'))
+//            });
+        function readURL(input) {
+
+            if (input.files && input.files[0]) {
+                var reader = new FileReader();
+
+                reader.onload = function (e) {
+
+                    var image_ws = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
+                    image_ws.onopen = function () {
+                        var file = document.getElementById('imgInp');
+                        image_ws.send(e.target.result + "," + file.files[0].name);
+                    };
+                };
+                reader.readAsDataURL(input.files[0]);
+            }
+        }
+
+        $("#imgInp").change(function () {
+            readURL(this);
+        });
+
+    };
+
+
+</script>
 </html>

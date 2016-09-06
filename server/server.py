@@ -16,7 +16,7 @@ clients = dict()
 class IndexHandler(tornado.web.RequestHandler):
     @tornado.web.asynchronous
     def get(self):
-        self.render("../client/index.html")
+        self.render(os.path.dirname(__file__).replace("server",'') + 'client/index.html')
 
 
 class Upload(tornado.web.RequestHandler):

@@ -60,7 +60,6 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):
         message = message.split(',')
-        print(message[0])
         fname= message[2]
         extn = os.path.splitext(fname)[1]
         cname = str(uuid.uuid4()) + extn

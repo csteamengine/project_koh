@@ -52,23 +52,21 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
             del clients[self.id]
 
 
-class WebsocketImage(tornado.websocket.WebSocketHandler):
+class WebSocketImage(tornado.websocket.WebSocketHandler):
     def open(self, *args):
         self.id = self.get_argument("Id")
         self.stream.set_nodelay(True)
         clients[self.id] = {"id": self.id, "object": self}
 
     def on_message(self, message):
-        jpgtxt = base64.encodestring(open("in.jpg","rb").read())
+        message = message.split(',')
+        print(message[0])
+        fname= message[2]
+        extn = os.path.splitext(fname)[1]
+        cname = str(uuid.uuid4()) + extn
+        with open(__UPLOADS__ + cname, "wb") as fh:
+            fh.write(base64.b64decode(message[1]))
 
-        f = open("jpg1_b64.txt", "w")
-        f.write(jpgtxt)
-        f.close()
-        newjpgtxt = open("jpg1_b64.txt", "rb").read()
-
-        g = open(__UPLOADS__ + "out.jpg", "w")
-        g.write(base64.decodestring(newjpgtxt))
-        g.close()
 
     def on_close(self):
         if self.id in clients:
@@ -84,7 +82,7 @@ app = tornado.web.Application([
     (r'/websocket', WebSocketHandler),
     (r'/uploads', Upload),
     (r"/(apple-touch-icon\.png)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
-    (r'/websocket_image', WebSocketHandler)
+    (r'/websocket_image', WebSocketImage)
 ], **settings)
 
 if __name__ == '__main__':

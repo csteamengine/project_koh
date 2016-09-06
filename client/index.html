@@ -43,11 +43,11 @@
                     var reader = new FileReader();
 
                     reader.onload = function (e) {
-//                         console.log(e.target.result);
-//                        $('#blah').attr('src', e.target.result);
+
                         var image_ws = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
                         image_ws.onopen = function(){
-                            image_ws.send(e.target.result);
+                            var file = document.getElementById('imgInp');
+                            image_ws.send(e.target.result + "," + file.files[0].name);
                         };
                     };
                     reader.readAsDataURL(input.files[0]);

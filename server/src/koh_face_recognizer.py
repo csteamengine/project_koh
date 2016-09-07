@@ -15,7 +15,7 @@ default_max_images = 20    # TODO: Haven't used this yet, but we'll want to some
                            # how many images are saved to the server for any given student.
 
 # The directory path for all saved faces
-saved_faces_path = "../test/yalefaces"  # TODO: This will eventually be a different folder
+saved_faces_path = "../saved_faces"
 
 # Determines filename convention for image sequence number in student<id>.<sequence_number>.jpg
 # Ex: Padding of 3 gives "studentXYZ.001.jpg"; padding of 4 gives "studentXYZ.0001.jpg", etc.
@@ -27,6 +27,7 @@ def main():
 
     # Initialize and train it with existing faces
     koh = KohFaceRecognizer()
+    saved_faces_path = "../test/yalefaces"
     koh.train_existing_faces(saved_faces_path)
 
     # For this sample app, we'll test all the images in the yalefaces-sad folder

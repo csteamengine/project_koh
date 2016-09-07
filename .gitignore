@@ -5,9 +5,10 @@
 # automatically based on your OS and browser
 webcam.js
 
-# We don't want to commit any images that get saved to the
-# uploads folder during testing
+# We don't want to commit any images that get saved to these
+# folders during testing
 uploads
+saved_faces
 
 # Any personal tutorial things we have saved in the project
 # directory shouldn't get committed

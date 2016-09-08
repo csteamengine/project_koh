@@ -1,0 +1,78 @@
+body{
+    background: url("circuit.jpg") center center;
+    background-size: cover;
+    color: #f2b632;
+}
+
+button, #submit_upload, .button{
+    background-color:#b5b5b7;
+    border: 1px solid #f2b632;
+    border-radius: 5px;
+    height: 30px;
+    width: 100px;
+    color: #252839;
+}
+
+a{
+    color: #252839;
+}
+
+
+.display_box{
+    width: 500px;
+    height: 500px;
+    margin: 20px;
+    background-color: #252839;
+    border: 1px solid #f2b632;
+    border-radius: 10px;
+}
+
+#content{
+    position: absolute;
+    width: 100%;
+    top: 0;
+    left: 0;
+    height: 100%;
+    text-align: center;
+    background-color: rgba(103,112,116,.8);
+}
+#grid{
+    width: 90%;
+    margin-left: 5%;
+    overflow:hidden;
+    display: flex;
+    display: -webkit-flex;
+    -webkit-flex-wrap: wrap;
+    justify-content: center;
+    -webkit-justify-content: center;
+}
+.image_display{
+    height: 240px;
+    width: 320px;
+    margin: 20px auto;
+    border: 1px solid #f2b632;
+
+}
+
+#student_display{
+    width: auto;
+}
+
+#result_table{
+    margin: 0 auto 20px;
+
+}
+
+#webcam{
+
+}
+
+#upload_div{
+
+}
+#result{
+
+}
+
+
+

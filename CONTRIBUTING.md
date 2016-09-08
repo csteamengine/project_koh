@@ -35,7 +35,10 @@
   - Name the server something. (Ex// Server 8888)
 
 ## Launch 
-  - To launch the server, click the Play button in the top right
+  - The server must now be started in the terminal by typing 
+  ```
+  python3 server.py
+  ```
   - Navigate to localhost:8888 in browser
   
 ## Changes

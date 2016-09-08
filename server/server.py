@@ -57,8 +57,7 @@ class Upload(tornado.web.RequestHandler):
         fh = open(os.path.dirname(__file__) + __UPLOADS__ + cname, 'wb')
         fh.write(fileinfo['body'])
         self.redirect("/")      # Sends the url back
-        # self.render("..client/index.html")
-        # self.finish(cname + " is uploaded!! Check %s folder" %__UPLOADS__)
+
 
 
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
@@ -100,7 +99,7 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
         cname = str(uuid.uuid4()) + extn
         with open(os.path.dirname(__file__) + __UPLOADS__ + cname, "wb") as fh:
             fh.write(base64.b64decode(message[1]))
-        with open(os.path.dirname(__file__) + "/saved_faces/student811699925.000.jpg", "rb") as image_file:
+        with open(os.path.dirname(__file__) + "saved_faces/student811699925.000.jpg", "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read())
 
         send_string = "{},Charlie_Steenhagen".format(encoded_string)

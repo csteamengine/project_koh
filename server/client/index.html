@@ -9,80 +9,79 @@
     <link rel="stylesheet" href="/static/test.css">
     <script src="/static/jquery-3.1.0.min.js" type="application/javascript"></script>
 
-    <script type="text/javascript">
-        function WebSocketTest() {
-            if ("WebSocket" in window) {
-                alert("WebSocket is supported by your Browser!");
-
-                // Let us open a web socket
-                var ws = new WebSocket("ws://localhost:8000");
-
-                ws.onopen = function () {
-                    // Web Socket is connected, send data using send()
-                    ws.send("Message to send");
-                    alert("Message is sent...");
-                };
-
-                ws.onmessage = function (evt) {
-                    var received_msg = evt.data;
-                    alert("Message is received...");
-                };
-
-                ws.onclose = function () {
-                    // websocket is closed.
-                    alert("Connection is closed...");
-                };
-            }
-
-            else {
-                // The browser doesn't support WebSocket
-                alert("WebSocket NOT supported by your Browser!");
-            }
-        }
-    </script>
-
     <script src="/static/js/webcam.js"></script>
 </head>
 <body>
 
-<form id="form1" >
-    <input type='file' id="imgInp"/>
-    <input type="submit" value="Upload">
-    <img id="blah" src="#" alt="your image" style="height: 100px; width: 100px;"/>
-</form>
 
+<div id="content">
 
-<div id="my_camera" style="width:320px; height:240px;"></div>
-    <div id="my_result"></div>
+    <div id="grid">
+        <div id="result" class="display_box" hidden>
+            <img id="student_display" class="image_display">
+            <table id="result_table">
+                <tr>
+                    <td>First Name: </td>
+                    <td id="first_name"></td>
+                </tr>
+                <tr>
+                    <td>Last Name: </td>
+                    <td id="last_name"></td>
+                </tr>
+            </table>
+            <button id="close_display_student">Close</button>
+        </div>
+        <div id="webcam" class="display_box">
+            <div id="my_camera" class="image_display" ></div>
+            <div id="my_result" class="image_display" hidden></div>
+            <script language="JavaScript">
+                Webcam.attach( '#my_camera' );
 
-    <script language="JavaScript">
-        Webcam.attach( '#my_camera' );
+                function take_snapshot() {
+                    Webcam.snap( function(data_uri) {
+                        document.getElementById('my_result').innerHTML = '<img id="result_image" src="'+data_uri+'"/>';
+                    } );
 
-        function take_snapshot() {
-            Webcam.snap( function(data_uri) {
-                document.getElementById('my_result').innerHTML = '<img id="result_image" src="'+data_uri+'"/>';
-            } );
+                }
+            </script>
 
-        }
-    </script>
+            <button id="take_snapshot_button"><a id="take_snapshot" href="javascript:void(take_snapshot())" style="text-decoration: none; color: black;">Take Snapshot</a></button>
+            <button id="webcam_identify" onclick="send_webcam_photo()" hidden>Identify</button>
+            <button id="cancel_webcam" onclick="cancel_snapshot()" hidden>Cancel</button>
 
-    <a id="take_snapshot" href="javascript:void(take_snapshot())">Take Snapshot</a>
-    <button id="webcam_identify" onclick="send_webcam_photo()" hidden>Identify</button>
+            <div id="upload_button">
+                <h2>Or</h2>
+                <button id="open_upload">Upload A File</button>
+            </div>
+        </div>
+        <div id="upload_div" class="display_box" hidden>
+            <img id="upload_img" src="#" class="image_display" alt="Image to Upload"/>
+            <form id="form1">
+                <input type='file' id="imgInp"/>
+                <input type="submit" id="submit_upload" value="Upload">
+            </form>
+            <div id="snapshot_button">
+                <h2>Or</h2>
+                <button id="close">Take a Snapshot</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
+
 </body>
-<script type="text/javascript">
-    window.onload = function () {
-        var ws = new WebSocket("ws://localhost:8888/websocket?Id=123456789");
-        ws.onopen = function () {
-            ws.send("Connected");
-        };
-        ws.onmessage = function (evt) {
-            console.log(evt.data);
-        };
 
-    };
+<script type="text/javascript">
 
     $('#take_snapshot').click(function(){
         $('#webcam_identify').show();
+        $('#cancel_webcam').show();
+        $('#upload_button').hide();
+        $('#my_camera').hide();
+        $('#take_snapshot_button').hide();
+        $('#my_result').show();
     });
 
     $("#form1").submit(function (e) {
@@ -94,12 +93,26 @@
        changeImg(this);
     });
 
+    $('#close_display_student').click(function(){
+       $('#result').hide();
+    });
+
+    function cancel_snapshot(){
+        $('#result_image').remove();
+        $('#webcam_identify').hide();
+        $('#cancel_webcam').hide();
+        $('#upload_button').show();
+        $('#my_camera').show();
+        $('#take_snapshot_button').show();
+        $('#my_result').hide();
+    }
+
     function changeImg(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();
 
             reader.onload = function (e) {
-                $('#blah').attr('src', e.target.result);
+                $('#upload_img').attr('src', e.target.result);
             };
 
             reader.readAsDataURL(input.files[0]);
@@ -112,22 +125,62 @@
             image_ws.send(string);
         };
         image_ws.onmessage = function(evt){
-            console.log(evt.data);
+            display_student(evt.data);
         };
     }
 
     function readURL() {
-        var input = $('#blah').attr('src') + ",webcamPhoto.jpg";
+        var input = $('#upload_img').attr('src') + ",webcamPhoto.jpg";
         var image_ws_upload = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
         image_ws_upload.onopen = function () {
             image_ws_upload.send(input);
         };
         image_ws_upload.onmessage = function(evt){
-            console.log(evt.data);
+            display_student(evt.data);
         };
 
     }
 
+    function display_student(data){
+        $('#result').show();
+        var data = data.split(',');
+        var img = trim_base64(data[0]);
+        var name = data[1].split('_');
 
+        if(name != null){
+            var f_name = name[0];
+            var l_name = name[1];
+            $('#student_display').attr('src', img);
+            $('#first_name').html(f_name.toString());
+            $('#last_name').html(l_name.toString());
+        }else{
+            send_new_student(data);
+        }
+
+    }
+
+    function trim_base64(data){
+
+        var img = data;
+        img = img.replace('\'', '');
+        img = img.substr(0,img.length -1);
+        img = img.substr(1);
+        img =  'data:image/jpeg;base64,' + img;
+        return img;
+
+    }
+
+    $('#open_upload').click(function(){
+        $('#upload_div').show();
+        $('#open_upload').hide();
+        $('#webcam').hide();
+    });
+
+
+    $('#close').click(function hide_upload(){
+        $('#upload_div').hide();
+        $('#open_upload').show();
+        $('#webcam').show();
+    });
 </script>
 </html>

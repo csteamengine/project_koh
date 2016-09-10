@@ -71,6 +71,18 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
         if self.id in clients:
             del clients[self.id]
 
+class WebSocketStudent(tornado.websocket.WebSocketHandler):
+    def open(self, *args):
+        self.id = self.get_argument("Id")
+        self.first = self.get_argument("First")
+        self.last = self.get_argument("Last")
+
+    def on_message(self, message):
+        print(message)
+
+    def on_close(self):
+        if self.id in clients:
+            del clients[self.id]
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
@@ -81,7 +93,8 @@ app = tornado.web.Application([
     (r'/websocket', WebSocketHandler),
     (r'/uploads', Upload),
     (r"/(apple-touch-icon\.png)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
-    (r'/websocket_image', WebSocketImage)
+    (r'/websocket_image', WebSocketImage),
+    (r'/websocket_newstudent', WebSocketStudent)
 ], **settings)
 
 if __name__ == '__main__':

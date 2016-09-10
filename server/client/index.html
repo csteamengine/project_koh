@@ -1,6 +1,5 @@
 <!DOCTYPE html>
 
-
 <html>
 <head>
     <meta charset="utf-8">
@@ -8,10 +7,103 @@
     <link rel="stylesheet" href="/static/test.css">
     <script src="/static/jquery-3.1.0.min.js" type="application/javascript"></script>
     <script src="/static/js/webcam.js"></script>
+    <style>
+        br {
+            display: block;
+            margin-top: 10px;
+            line-height: 30px;
+        }
+
+        /* The Modal (background) */
+        .modal {
+            display: none; /* Hidden by default */
+            position: fixed; /* Stay in place */
+            z-index: 1; /* Sit on top */
+            padding-top: 100px; /* Location of the box */
+            left: 0;
+            top: 0;
+            width: 100%; /* Full width */
+            height: 100%; /* Full height */
+            overflow: auto; /* Enable scroll if needed */
+            background-color: rgb(0, 0, 0); /* Fallback color */
+            background-color: rgba(0, 0, 0, 0.4); /* Black w/ opacity */
+        }
+
+        /* Modal Content */
+        .modal-content {
+            position: relative;
+            background-color: #fefefe;
+            margin: auto;
+            padding: 0;
+            border: 1px solid #888;
+            width: 30%;
+            box-shadow: 0 4px 8px 0 rgba(0, 0, 0, 0.2), 0 6px 20px 0 rgba(0, 0, 0, 0.19);
+            -webkit-animation-name: animatetop;
+            -webkit-animation-duration: 0.4s;
+            animation-name: animatetop;
+            animation-duration: 0.4s
+        }
+
+        /* Add Animation */
+        @-webkit-keyframes animatetop {
+            from {
+                top: -300px;
+                opacity: 0
+            }
+            to {
+                top: 0;
+                opacity: 1
+            }
+        }
+
+        @keyframes animatetop {
+            from {
+                top: -300px;
+                opacity: 0
+            }
+            to {
+                top: 0;
+                opacity: 1
+            }
+        }
+
+        /* The Close Button */
+        .close {
+            color: white;
+            float: right;
+            font-size: 28px;
+            font-weight: bold;
+        }
+
+        .close:hover,
+        .close:focus {
+            color: #000;
+            text-decoration: none;
+            cursor: pointer;
+        }
+
+        .modal-header {
+            padding: 2px 16px;
+            background-color: #5cb85c;
+            color: white;
+        }
+
+        .modal-body {
+            padding: 2px 16px;
+            padding-top: 20px;
+            padding-bottom: 20px;
+        }
+
+        .modal-footer {
+            padding: 2px 16px;
+            background-color: #5cb85c;
+            color: white;
+        }
+    </style>
 </head>
 <body>
 
-<form id="form1" >
+<form id="form1">
     <input type='file' id="imgInp"/>
     <input type="submit" value="Upload">
     <img id="blah" src="#" alt="your image" style="height: 100px; width: 100px;"/>
@@ -19,21 +111,76 @@
 
 
 <div id="my_camera" style="width:320px; height:240px;"></div>
-    <div id="my_result"></div>
+<div id="my_result"></div>
 
-    <script language="JavaScript">
-        Webcam.attach( '#my_camera' );
 
-        function take_snapshot() {
-            Webcam.snap( function(data_uri) {
-                document.getElementById('my_result').innerHTML = '<img id="result_image" src="'+data_uri+'"/>';
-            } );
+<!-- Trigger/Open The Modal -->
+<button id="myBtn">Open Modal</button>
 
+<!-- The Modal -->
+<div id="myModal" class="modal">
+
+    <!-- Modal content -->
+    <div class="modal-content">
+        <div class="modal-header">
+            <span class="close">×</span>
+            <h2>Identify this Person</h2>
+        </div>
+        <div class="modal-body">
+            <form name="studentForm">
+                <p style="display: inline; width: 15%; padding-right: 10px">First Name:</p><input type="text"
+                                                                                                  name="first">
+                <br>
+                <p style="display: inline; width: 15%; padding-right: 12px">Last Name:</p><input type="text"
+                                                                                                 name="last">
+                <br>
+                <input type="submit" value="Submit">
+                <input id="cancel" type="button" value="Cancel">
+            </form>
+        </div>
+    </div>
+
+</div>
+
+<script language="JavaScript">
+    Webcam.attach('#my_camera');
+
+    function take_snapshot() {
+        Webcam.snap(function (data_uri) {
+            document.getElementById('my_result').innerHTML = '<img id="result_image" src="' + data_uri + '"/>';
+        });
+
+    }
+
+    // Get the modal
+    var modal = document.getElementById('myModal');
+
+    // Get the button that opens the modal
+    var btn = document.getElementById("myBtn");
+
+    // Get the <span> element that closes the modal
+    var span = document.getElementsByClassName("close")[0];
+
+    // When the user clicks on the button, open the modal
+    btn.onclick = function () {
+        modal.style.display = "block";
+    }
+
+    // When the user clicks on <span> (x), close the modal
+    span.onclick = function () {
+        modal.style.display = "none";
+    }
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+        if (event.target == modal) {
+            modal.style.display = "none";
         }
-    </script>
+    }
+</script>
 
-    <a id="take_snapshot" href="javascript:void(take_snapshot())">Take Snapshot</a>
-    <button id="webcam_identify" onclick="send_webcam_photo()" hidden>Identify</button>
+<a id="take_snapshot" href="javascript:void(take_snapshot())">Take Snapshot</a>
+<button id="webcam_identify" onclick="send_webcam_photo()" hidden>Identify</button>
 </body>
 <script type="text/javascript">
     window.onload = function () {
@@ -47,7 +194,7 @@
 
     };
 
-    $('#take_snapshot').click(function(){
+    $('#take_snapshot').click(function () {
         $('#webcam_identify').show();
     });
 
@@ -56,8 +203,13 @@
         readURL();
     });
 
-    $('#imgInp').change(function (){
-       changeImg(this);
+    $('#imgInp').change(function () {
+        changeImg(this);
+    });
+
+    $("#cancel").click(function () {
+        //TODO send cancel response to server
+        $("#myModal").css("display", "none");
     });
 
     function changeImg(input) {
@@ -71,13 +223,13 @@
             reader.readAsDataURL(input.files[0]);
         }
     }
-    function send_webcam_photo(){
-        var string = $('#result_image').attr('src') + ",webcamPhoto.jpg" ;
+    function send_webcam_photo() {
+        var string = $('#result_image').attr('src') + ",webcamPhoto.jpg";
         var image_ws = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
-        image_ws.onopen = function(){
+        image_ws.onopen = function () {
             image_ws.send(string);
         };
-        image_ws.onmessage = function(evt){
+        image_ws.onmessage = function (evt) {
             console.log(evt.data);
         };
     }
@@ -88,12 +240,20 @@
         image_ws_upload.onopen = function () {
             image_ws_upload.send(input);
         };
-        image_ws_upload.onmessage = function(evt){
+        image_ws_upload.onmessage = function (evt) {
             console.log(evt.data);
         };
-
     }
 
+    function send_newstudent(data) {
+        var ws_newstudent = new WebSocket("ws://localhost:8888/websocket_newstudent");
+        ws_newstudent.onopen = function () {
+            //Do Something
+        };
+        ws_newstudent.onmessage = function (evt) {
+            console.log(evt.data);
+        };
+    }
 
 </script>
 </html>

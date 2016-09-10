@@ -73,16 +73,20 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
 
 class WebSocketStudent(tornado.websocket.WebSocketHandler):
     def open(self, *args):
-        self.id = self.get_argument("Id")
-        self.first = self.get_argument("First")
-        self.last = self.get_argument("Last")
+        """self.id = self.get_argument("Id")"""
+        print("open student ws")
 
     def on_message(self, message):
-        print(message)
+        message = message.split(',')
+        first = message[0]
+        last = message[1]
+        print("First name: " + first)
+        print("Last name: " + last)
+        self.write_message("SUCCESS")
+        """TODO call database function"""
 
     def on_close(self):
-        if self.id in clients:
-            del clients[self.id]
+        print("Closed")
 
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),

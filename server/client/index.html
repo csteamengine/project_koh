@@ -129,7 +129,7 @@
         <div class="modal-body">
             <form id="studentForm">
                 <p style="display: inline; width: 15%; padding-right: 10px">First Name:</p>
-                <input type="text" id="first" maxlength="30" required>
+                <input type="text" id="first" maxlength="30" required autofocus>
                 <br>
                 <p style="display: inline; width: 15%; padding-right: 12px">Last Name:</p>
                 <input type="text" id="last" maxlength="30" required>
@@ -218,6 +218,7 @@
         var last = $("#last").val();
         send_newstudent(first, last);
     });
+
     function changeImg(input) {
         if (input.files && input.files[0]) {
             var reader = new FileReader();

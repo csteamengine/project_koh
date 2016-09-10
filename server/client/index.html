@@ -6,6 +6,7 @@
     <title>Client-Server Websocket</title>
     <link rel="stylesheet" href="/static/test.css">
     <script src="/static/jquery-3.1.0.min.js" type="application/javascript"></script>
+    <script src="/static/js/functions.js"></script>
     <script src="/static/js/webcam.js"></script>
     <style>
         br {
@@ -84,7 +85,7 @@
 
         .modal-header {
             padding: 2px 16px;
-            background-color: #5cb85c;
+            background-color: #f2b632;
             color: white;
         }
 
@@ -103,19 +104,67 @@
 </head>
 <body>
 
-<form id="form1">
-    <input type='file' id="imgInp"/>
-    <input type="submit" value="Upload">
-    <img id="blah" src="#" alt="your image" style="height: 100px; width: 100px;"/>
-</form>
+<div id="content">
 
+    <div id="grid">
+        <div id="result" class="display_box" hidden>
+            <img id="student_display" class="image_display">
+            <table id="result_table">
+                <tr>
+                    <td>First Name:</td>
+                    <td id="first_name"></td>
+                </tr>
+                <tr>
+                    <td>Last Name:</td>
+                    <td id="last_name"></td>
+                </tr>
+            </table>
+            <button id="close_display_student">Close</button>
+        </div>
+        <div id="webcam" class="display_box">
+            <div id="my_camera" class="image_display"></div>
+            <div id="my_result" class="image_display" hidden></div>
+            <script language="JavaScript">
+                Webcam.attach('#my_camera');
 
-<div id="my_camera" style="width:320px; height:240px;"></div>
-<div id="my_result"></div>
+                function take_snapshot() {
+                    Webcam.snap(function (data_uri) {
+                        document.getElementById('my_result').innerHTML = '<img id="result_image" src="' + data_uri + '"/>';
+                    });
 
+                }
+            </script>
 
-<!-- Trigger/Open The Modal -->
-<button id="myBtn">Open Modal</button>
+            <button id="take_snapshot_button"><a id="take_snapshot" href="javascript:void(take_snapshot())"
+                                                 style="text-decoration: none; color: black;">Take Snapshot</a></button>
+            <button id="webcam_identify" onclick="send_webcam_photo()" hidden>Identify</button>
+            <button id="cancel_webcam" onclick="cancel_snapshot()" hidden>Cancel</button>
+
+            <div id="upload_button">
+                <h2>Or</h2>
+                <button id="open_upload">Upload A File</button>
+
+                <!-- Trigger/Open The Modal -->
+                <button id="myBtn">Open Modal</button>
+
+            </div>
+        </div>
+        <div id="upload_div" class="display_box" hidden>
+            <img id="upload_img" src="#" class="image_display" alt="Image to Upload"/>
+            <form id="form1">
+                <input type='file' id="imgInp"/>
+                <input type="submit" id="submit_upload" value="Upload">
+            </form>
+            <div id="snapshot_button">
+                <h2>Or</h2>
+                <button id="close">Take a Snapshot</button>
+            </div>
+
+        </div>
+
+    </div>
+
+</div>
 
 <!-- The Modal -->
 <div id="myModal" class="modal">
@@ -178,24 +227,17 @@
         }
     }
 </script>
-
-<a id="take_snapshot" href="javascript:void(take_snapshot())">Take Snapshot</a>
-<button id="webcam_identify" onclick="send_webcam_photo()" hidden>Identify</button>
 </body>
-<script type="text/javascript">
-    window.onload = function () {
-        var ws = new WebSocket("ws://localhost:8888/websocket?Id=123456789");
-        ws.onopen = function () {
-            ws.send("Connected");
-        };
-        ws.onmessage = function (evt) {
-            console.log(evt.data);
-        };
 
-    };
+<script type="text/javascript">
 
     $('#take_snapshot').click(function () {
         $('#webcam_identify').show();
+        $('#cancel_webcam').show();
+        $('#upload_button').hide();
+        $('#my_camera').hide();
+        $('#take_snapshot_button').hide();
+        $('#my_result').show();
     });
 
     $("#form1").submit(function (e) {
@@ -219,39 +261,6 @@
         send_newstudent(first, last);
     });
 
-    function changeImg(input) {
-        if (input.files && input.files[0]) {
-            var reader = new FileReader();
-
-            reader.onload = function (e) {
-                $('#blah').attr('src', e.target.result);
-            };
-
-            reader.readAsDataURL(input.files[0]);
-        }
-    }
-    function send_webcam_photo() {
-        var string = $('#result_image').attr('src') + ",webcamPhoto.jpg";
-        var image_ws = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
-        image_ws.onopen = function () {
-            image_ws.send(string);
-        };
-        image_ws.onmessage = function (evt) {
-            console.log(evt.data);
-        };
-    }
-
-    function readURL() {
-        var input = $('#blah').attr('src') + ",webcamPhoto.jpg";
-        var image_ws_upload = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
-        image_ws_upload.onopen = function () {
-            image_ws_upload.send(input);
-        };
-        image_ws_upload.onmessage = function (evt) {
-            console.log(evt.data);
-        };
-    }
-
     function send_newstudent(first, last) {
         var ws_newstudent = new WebSocket("ws://localhost:8888/websocket_newstudent");
         ws_newstudent.onopen = function () {
@@ -260,11 +269,28 @@
         };
         ws_newstudent.onmessage = function (evt) {
             console.log(evt.data);
-            if(evt.data === "SUCCESS") {
+            if (evt.data === "SUCCESS") {
                 $("#myModal").css("display", "none");
             }
         };
     }
 
+    $('#close_display_student').click(function () {
+        $('#result').hide();
+    });
+
+
+    $('#open_upload').click(function () {
+        $('#upload_div').show();
+        $('#open_upload').hide();
+        $('#webcam').hide();
+    });
+
+
+    $('#close').click(function hide_upload() {
+        $('#upload_div').hide();
+        $('#open_upload').show();
+        $('#webcam').show();
+    });
 </script>
 </html>

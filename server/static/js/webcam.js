@@ -53,7 +53,7 @@ var Webcam = {
 		force_flash: false,    // force flash mode,
 		flip_horiz: false,     // flip image horiz (mirror mode)
 		fps: 30,               // camera frames per second
-		upload_name: 'webcam', // name of file in upload post data
+		upload_name: 'webcam', // name of file in uploads post data
 		constraints: null,     // custom user media constraints,
 		swfURL: '',            // URI to webcam.swf movie (defaults to the js location)
 		flashNotDetectedText: 'ERROR: No Adobe Flash Player detected.  Webcam.js relies on Flash for browsers that do not support getUserMedia (like yours).',
@@ -760,7 +760,7 @@ var Webcam = {
 		// create a blob and decode our base64 to binary
 		var blob = new Blob( [ this.base64DecToArr(raw_image_data) ], {type: 'image/'+image_fmt} );
 		
-		// stuff into a form, so servers can easily receive it as a standard file upload
+		// stuff into a form, so servers can easily receive it as a standard file uploads
 		var form = new FormData();
 		form.append( form_elem_name, blob, form_elem_name+"."+image_fmt.replace(/e/, '') );
 		

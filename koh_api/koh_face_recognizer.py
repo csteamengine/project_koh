@@ -1,21 +1,21 @@
 #!/usr/bin/env python3
 
 # Import the required modules
-import cv2, os, scipy.misc
+import cv2
+import os
+import scipy.misc
 import numpy as np
 from PIL import Image
 
-# For face detection we will use the Haar Cascade provided by OpenCV.
+# For face detection we will use a cascade pattern provided by OpenCV.
+# noinspection SpellCheckingInspection
 cascade_path = "/usr/local/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml"
 
 # Default max number of images for a given student.
 # Every time a student is re-identified, it will store an image on
 # the server up to the maxImages amount.
-default_max_images = 20    # TODO: Haven't used this yet, but we'll want to somehow limit
-                           # how many images are saved to the server for any given student.
-
-# The directory path for all saved faces
-saved_faces_path = "../saved_faces"
+default_max_images = 20     # TODO: Haven't used this yet, but we'll want to somehow limit
+#                             how many images are saved to the server for any given student.
 
 # Determines filename convention for image sequence number in student<id>.<sequence_number>.jpg
 # Ex: Padding of 3 gives "studentXYZ.001.jpg"; padding of 4 gives "studentXYZ.0001.jpg", etc.
@@ -23,16 +23,20 @@ saved_image_sequence_padding = 3
 
 
 def main():
+    """
+    The Sample app for KohFaceRecognizer
+
+    :return:
+    """
     print("Starting sample app.")
 
     # Initialize and train it with existing faces
-    koh = KohFaceRecognizer()
-    saved_faces_path = "../test/yalefaces"
-    koh.train_existing_faces(saved_faces_path)
+    koh = KohFaceRecognizer(100, "../test/yale_faces")
+    koh.train_saved_faces()
 
-    # For this sample app, we'll test all the images in the yalefaces-sad folder
+    # For this sample app, we'll test all the images in the yale_faces-sad folder
     # against the other images that have already been trained in.
-    sad_faces_path = "../test/yalefaces-sad"
+    sad_faces_path = "../test/yale_faces-sad"
     sad_faces = [os.path.join(sad_faces_path, f) for f in os.listdir(sad_faces_path)]
     print("Printing the results:\n")
     for face in sad_faces:
@@ -49,13 +53,21 @@ def main():
 
 
 class KohFaceRecognizer:
-    def __init__(self):
-        print("Initializing KohFaceRecognizer.")
+    """
+    Provides an API to interface with OpenCV for detecting and
+    recognizing faces.
+    """
+
+    def __init__(self, confidence_threshold, saved_faces_path):
+        print("Initializing KohFaceRecognizer:\n    confidence_threshold = {}\n    saved_faces_path = {}".format(confidence_threshold, saved_faces_path))
+
         # For face detection
         self.faceCascade = cv2.CascadeClassifier(cascade_path)
+        self.saved_faces_path = saved_faces_path
 
         # For face recognition
         self.recognizer = cv2.face.createLBPHFaceRecognizer()
+        self.confidence_threshold = confidence_threshold
 
     def detect_faces(self, img_path):
         """
@@ -70,6 +82,7 @@ class KohFaceRecognizer:
         :return: (prediction_image, faces_in_image)
         """
         greyscale_image = Image.open(img_path).convert('L')
+        # noinspection SpellCheckingInspection
         prediction_image = np.array(greyscale_image, 'uint8')
         faces_in_image = self.faceCascade.detectMultiScale(prediction_image)
         return prediction_image, faces_in_image
@@ -94,11 +107,12 @@ class KohFaceRecognizer:
         :param student_id:
         :return: The path to the file that was saved.
         """
-        # Get existing filenames for this student
-        existing_image_filenames = [f for f in os.listdir(saved_faces_path) if f.startswith("student{}.".format(student_id))]
-        # Next we'll parse the image sequence numbers out of the filenames
+        # Get existing file names for this student
+        existing_image_file_names = [f for f in os.listdir(self.saved_faces_path)
+                                     if f.startswith("student{}.".format(student_id))]
+        # Next we'll parse the image sequence numbers out of the file names
         existing_image_numbers = []
-        for path in existing_image_filenames:
+        for path in existing_image_file_names:
             try:
                 n = int(path.split(".")[1])
                 existing_image_numbers.append(n)
@@ -111,7 +125,7 @@ class KohFaceRecognizer:
         number_string = format(new_image_number, "0{}".format(saved_image_sequence_padding))
         # Save the file
         filename = "student{}.{}.jpg".format(student_id, number_string)
-        file_path = "{}/{}".format(saved_faces_path, filename)
+        file_path = "{}/{}".format(self.saved_faces_path, filename)
         scipy.misc.toimage(numpy_image, cmin=0.0, cmax=...).save(file_path)
         return file_path
 
@@ -128,9 +142,26 @@ class KohFaceRecognizer:
         self.recognizer.train([numpy_image], np.array([student_id]))
 
     def train_new_faces(self, student_id_array, numpy_image_array):
+        """
+        Used to train the recognizer with multiple new faces. You get numpy_images
+        back in an array after calling `detect_faces()`. You can pass that array
+        into this method.
+
+        :param student_id_array:
+        :param numpy_image_array:
+        :return:
+        """
         self.recognizer.train(numpy_image_array, np.array(student_id_array))
 
-    def train_existing_faces(self, dir_path):
+    def train_saved_faces(self):
+        """
+        Trains the recognizer with faces from the saved_faces_path directory.
+
+        :return:
+        """
+        return self.train_faces_in_dir(self.saved_faces_path)
+
+    def train_faces_in_dir(self, dir_path):
         """
         Trains the recognizer with faces from the given directory path.
         The directory path should be formatted as follows:
@@ -147,10 +178,11 @@ class KohFaceRecognizer:
         """
         print("Training existing faces into the recognizer...", end="", flush=True)
         # Append all the absolute image paths in a list image_paths
-        image_filenames = [f for f in os.listdir(dir_path)]
+        image_file_names = [f for f in os.listdir(dir_path)]
         images = []
         student_ids = []
-        for filename in image_filenames:
+        for filename in image_file_names:
+            # noinspection PyTypeChecker
             id_ = int(filename.split(".")[0].replace("student", ""))
             image_path = os.path.join(dir_path, filename)
             prediction_image, faces_in_image = self.detect_faces(image_path)
@@ -180,8 +212,21 @@ class KohFaceRecognizer:
                 prediction_image[y: y + h, x: x + w], student_id_predicted, prediction_confidence))
         return prediction_results
 
+    def positively_identified(self, prediction_result):
+        """
+        Returns true if the prediction_result was positively identified as a match
+
+        :param prediction_result: The result of a predict_face() operation
+        :return:
+        """
+        return True if prediction_result.confidence < self.confidence_threshold else False
+
 
 class PredictionResult:
+    """
+    A value object containing the numpy_image, student_id, and confidence of a prediction.
+    """
+
     def __init__(self, numpy_image, student_id, confidence):
         self.numpy_image = numpy_image
         self.student_id = student_id
@@ -189,5 +234,6 @@ class PredictionResult:
         self.confidence = confidence
 
 
+# Run the sample app if this file is run as main
 if __name__ == "__main__":
     main()

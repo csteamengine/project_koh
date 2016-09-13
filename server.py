@@ -6,12 +6,14 @@ import tornado.websocket
 from tornado.options import define, options, parse_command_line
 import os, uuid
 import base64
+import koh_api
 
 
 define("port", default=8888, help="run on the given port", type=int)
 __INDEX_FILE__ = "client/index.html"
-__UPLOADS__ = "uploads/"
+__UPLOADS__ = "/" + "uploads/"
 __ASYNC_UPLOAD__ = "async_upload/"
+koh = koh_api.KohFaceRecognizer()
 # we gonna store clients in dictionary..
 clients = dict()
 settings = {
@@ -63,7 +65,6 @@ class Upload(tornado.web.RequestHandler):
         self.redirect("/")      # Sends the url back
 
 
-
 class WebSocketHandler(tornado.websocket.WebSocketHandler):
     def open(self, *args):
         self.id = self.get_argument("Id")
@@ -105,17 +106,32 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
         if not os.path.isdir(os.path.dirname(__file__) + __UPLOADS__):
             os.mkdir(os.path.dirname(__file__) + __UPLOADS__)
 
-        with open(os.path.dirname(__file__) + __UPLOADS__ + cname, "wb") as fh:
+        # Save the uploaded image to the uploads directory
+        image_file_path = os.path.dirname(__file__) + __UPLOADS__ + cname
+        with open(image_file_path, "wb") as fh:
             fh.write(base64.b64decode(message[1]))
+
+        # Use koh to detect and predict a face from the image
+        results = koh.predict_face(image_file_path)
+        # TODO
+
         with open(os.path.dirname(__file__) + "/" + "saved_faces/student811699925.000.jpg", "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read())
 
-        send_string = "{},Charlie_Steenhagen".format(encoded_string)
+        first_name = ""
+        last_name = ""
+        identified = True
+        student_name = "{}_{}".format(first_name, last_name)
+        student_id = ""
+
+        # FORMAT: Image, True/False, Name, ID
+        send_string = "{},{},{},{}".format(encoded_string, identified, student_name, student_id)
         self.write_message(send_string)
 
     def on_close(self):
         if self.id in clients:
             del clients[self.id]
+
 
 class WebSocketStudent(tornado.websocket.WebSocketHandler):
     def open(self, *args):
@@ -133,6 +149,7 @@ class WebSocketStudent(tornado.websocket.WebSocketHandler):
 
     def on_close(self):
         print("Closed")
+
 
 if __name__ == '__main__':
     main()

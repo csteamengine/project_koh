@@ -45,7 +45,7 @@ def main():
             koh.train_new_face(result.student_id, result.numpy_image)
 
             # Save the face snapshot to the server (which we won't do in this sample app):
-            # new_image_path = koh.save_prediction_result_image(result)
+            # new_image_path = koh_api.save_prediction_result_image(result)
 
 
 class KohFaceRecognizer:

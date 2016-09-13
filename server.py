@@ -139,6 +139,7 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
 
         self.write_message(send_string)
 
+
     def on_close(self):
         if self.id in clients:
             del clients[self.id]

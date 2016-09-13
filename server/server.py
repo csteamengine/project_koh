@@ -17,6 +17,7 @@ clients = dict()
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
 }
+id = 0
 
 
 def main():
@@ -112,12 +113,12 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
 
         """TODO Use opencv to determine if recognized (ie. returns id)
             With id call database to get first and last get_name(id)"""
-        recognized = True
+        recognized = False
         first = "Charlie"
         last = "Steenhagen"
 
         """send_string = "{},Charlie_Steenhagen".format(encoded_string)"""
-        send_string = "{},{},{}_{},{}".format(encoded_string, recognized, first, last, self.id)
+        send_string = "{},{},{}_{},{}".format(encoded_string, recognized, first, last, id)
         self.write_message(send_string)
 
     def on_close(self):

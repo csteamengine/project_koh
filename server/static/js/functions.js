@@ -47,19 +47,21 @@ function readURL() {
 }
 
 function display_student(data){
-    $('#result').show();
+
     var data = data.split(',');
     var img = trim_base64(data[0]);
-    var name = data[1].split('_');
+    var bool = data[1];
+    var name = data[2].split('_');
 
-    if(name != null){
+    if(bool == "True"){
+        $('#result').show();
         var f_name = name[0];
         var l_name = name[1];
         $('#student_display').attr('src', img);
         $('#first_name').html(f_name.toString());
         $('#last_name').html(l_name.toString());
     }else{
-        send_new_student(data);
+        identify_student(data);
     }
 
 }
@@ -73,4 +75,44 @@ function trim_base64(data){
     img =  'data:image/jpeg;base64,' + img;
     return img;
 
+}
+
+function identify_student(data){
+    var modal = document.getElementById('myModal');
+    // When the user clicks on the button, open the modal
+    modal.style.display = "block";
+    $('#id').val(data[3]);
+    var img = trim_base64(data[0]);
+    $('#model_image').attr('src', img);
+
+}
+
+function take_snapshot() {
+    Webcam.snap(function (data_uri) {
+        document.getElementById('my_result').innerHTML = '<img id="result_image" src="' + data_uri + '"/>';
+    });
+
+}
+
+function send_newstudent(first, last, id) {
+    var ws_newstudent = new WebSocket("ws://localhost:8888/websocket_newstudent");
+    ws_newstudent.onopen = function () {
+        //Do Something
+        ws_newstudent.send(first + "," + last + "," + id);
+    };
+    ws_newstudent.onmessage = function (evt) {
+        console.log(evt.data);
+        if (evt.data === "SUCCESS") {
+            $("#myModal").css("display", "none");
+        }
+    };
+
+    var string = $('#model_image').attr('src') + ",webcamPhoto.jpg" ;
+    var image_ws = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
+    image_ws.onopen = function(){
+        image_ws.send(string);
+    };
+    image_ws.onmessage = function(evt){
+        display_student(evt.data);
+    };
 }

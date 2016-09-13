@@ -144,8 +144,6 @@
                 <h2>Or</h2>
                 <button id="open_upload">Upload A File</button>
 
-                <!-- Trigger/Open The Modal -->
-                <button id="myBtn">Open Modal</button>
 
             </div>
         </div>
@@ -177,6 +175,8 @@
         </div>
         <div class="modal-body">
             <form id="studentForm">
+                <img id="model_image" style="height: 100px;">
+                <br>
                 <p style="display: inline; width: 15%; padding-right: 10px">First Name:</p>
                 <input type="text" id="first" maxlength="30" required autofocus>
                 <br>
@@ -192,14 +192,12 @@
 </div>
 
 <script language="JavaScript">
+
+</script>
+</body>
+
+<script type="text/javascript">
     Webcam.attach('#my_camera');
-
-    function take_snapshot() {
-        Webcam.snap(function (data_uri) {
-            document.getElementById('my_result').innerHTML = '<img id="result_image" src="' + data_uri + '"/>';
-        });
-
-    }
 
     // Get the modal
     var modal = document.getElementById('myModal');
@@ -209,11 +207,6 @@
 
     // Get the <span> element that closes the modal
     var span = document.getElementsByClassName("close")[0];
-
-    // When the user clicks on the button, open the modal
-    btn.onclick = function () {
-        modal.style.display = "block";
-    }
 
     // When the user clicks on <span> (x), close the modal
     span.onclick = function () {
@@ -226,10 +219,6 @@
             modal.style.display = "none";
         }
     }
-</script>
-</body>
-
-<script type="text/javascript">
 
     $('#take_snapshot').click(function () {
         $('#webcam_identify').show();
@@ -258,22 +247,11 @@
         e.preventDefault();
         var first = $("#first").val();
         var last = $("#last").val();
-        send_newstudent(first, last);
+        var id = $('#id').val();
+        send_newstudent(first, last, id);
     });
 
-    function send_newstudent(first, last) {
-        var ws_newstudent = new WebSocket("ws://localhost:8888/websocket_newstudent");
-        ws_newstudent.onopen = function () {
-            //Do Something
-            ws_newstudent.send(first + "," + last);
-        };
-        ws_newstudent.onmessage = function (evt) {
-            console.log(evt.data);
-            if (evt.data === "SUCCESS") {
-                $("#myModal").css("display", "none");
-            }
-        };
-    }
+
 
     $('#close_display_student').click(function () {
         $('#result').hide();

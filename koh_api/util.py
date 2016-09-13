@@ -7,7 +7,7 @@ def write_new(first, last, id_num):
     :param id_num: id number
     :return: None
     """
-    with open("database.txt", "w") as f:
+    with open("database.txt", "a") as f:
         f.write("{}, {}, {}\n".format(first, last, id_num))
 
 

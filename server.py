@@ -19,7 +19,7 @@ __ASYNC_UPLOAD__ = "async_upload/"
 # A lower confidence value means it's a closer match. So everything less than
 # confidence_threshold will constitute a match, and everything above it will
 # mean it's not a match.
-confidence_threshold = 100
+confidence_threshold = 90
 saved_faces_path = "./saved_faces"
 koh = koh_api.KohFaceRecognizer(confidence_threshold, saved_faces_path)
 # we gonna store clients in dictionary..
@@ -47,6 +47,50 @@ def main():
     app.listen(options.port)
     print("Listening on port {}".format(options.port))
     tornado.ioloop.IOLoop.instance().start()
+
+
+def _handle_koh_result(result):
+    """
+    :param result: A PredictionResult from a koh.predict_faces() operation
+    :return: The send_string that should be sent back to the client
+    """
+
+    print("Prediction Result:\n    student_id: {}\n    confidence: {}".format(result.student_id, result.confidence))
+    # Is the image a match?
+    positive_id = koh.positively_identified(result)
+    student_id = result.student_id if positive_id else random.randint(1000000, 9999999)
+
+    # Save the result image
+    result_image_path = koh.save_student_image(result.numpy_image, student_id)
+    with open(result_image_path, "rb") as image_file:
+        encoded_image_string = base64.b64encode(image_file.read())
+
+    # Set send_string properties
+    if positive_id:
+        first_name, last_name = koh_api.get_name(student_id)
+    else:
+        first_name, last_name = "", ""
+
+    # In case the student isn't found in the database
+    if first_name is None or last_name is None:
+        first_name, last_name = "", ""
+        positive_id = False
+
+    # send_string format: encoded_image_string, positive_id, first_name, last_name, student_id, error_string
+    # If there's an error, return something in the error_string
+    send_string = "{},{},{}_{},{},{}".format(
+        encoded_image_string, positive_id, first_name, last_name, student_id, "")
+    print("""\
+Sent back to client:
+    image:       {}
+    positive_id: {}
+        # Send the string back to the client
+        se
+    first_last:  {}_{}
+    student_id:  {}
+    error:       {}""".format(result_image_path, positive_id, first_name, last_name, student_id, ""))
+
+    return send_string
 
 
 # noinspection PyAbstractClass
@@ -85,9 +129,24 @@ class Upload(tornado.web.RequestHandler):
         if not os.path.isdir(os.path.dirname(__file__) + __UPLOADS__):
             os.mkdir(os.path.dirname(__file__) + __UPLOADS__)
 
-        fh = open(os.path.dirname(__file__) + __UPLOADS__ + c_name, 'wb')
+        image_file_path = os.path.dirname(__file__) + __UPLOADS__ + c_name
+        fh = open(image_file_path, 'wb')
         fh.write(file_info['body'])
         self.redirect("/")      # Sends the url back
+        #
+        # # Use koh to detect and predict a face from the image
+        # results = koh.predict_face(image_file_path)
+        # for result in results:
+        #     send_string = _handle_koh_result(result)
+        #     self.write_message(send_string)
+        #
+        # # If it didn't detect a face at all...
+        # if len(results) == 0:
+        #     send_string = "{},{},{}_{},{},{}".format("", False, "", "", 0, "Unable to detect a face in this image!")
+        #     self.write_message(send_string)
+        #
+        # # Clean things up by deleting the upload file
+        # os.remove(image_file_path)
 
 
 # noinspection PyAbstractClass
@@ -146,59 +205,23 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
 
         # Save the uploaded image to the uploads directory
         image_file_path = os.path.dirname(__file__) + __UPLOADS__ + c_name
-        print("Saved uploaded image as: {}".format(image_file_path))
         with open(image_file_path, "wb") as fh:
             fh.write(base64.b64decode(message[1]))
 
         # Use koh to detect and predict a face from the image
         results = koh.predict_face(image_file_path)
         for result in results:
-            self._handle_koh_result(result)
+            send_string = _handle_koh_result(result)
+            self.write_message(send_string)
 
         # If it didn't detect a face at all...
         if len(results) == 0:
             send_string = "{},{},{}_{},{},{}".format("", False, "", "", 0, "Unable to detect a face in this image!")
+            print("Unable to detect a face in the image!")
             self.write_message(send_string)
 
         # Clean things up by deleting the upload file
         os.remove(image_file_path)
-
-    def _handle_koh_result(self, result):
-        print("Prediction Result:\n    student_id: {}\n    confidence: {}".format(result.student_id, result.confidence))
-        # Is the image a match?
-        positive_id = koh.positively_identified(result)
-        student_id = result.student_id if positive_id else random.randint(1000000, 9999999)
-
-        # Save the result image
-        result_image_path = koh.save_student_image(result.numpy_image, student_id)
-        with open(result_image_path, "rb") as image_file:
-            encoded_image_string = base64.b64encode(image_file.read())
-
-        # Set send_string properties
-        if positive_id:
-            first_name, last_name = koh_api.get_name(student_id)
-        else:
-            first_name, last_name = "", ""
-
-        # In case the student isn't found in the database
-        if first_name is None or last_name is None:
-            first_name, last_name = "", ""
-            positive_id = False
-
-        # send_string format: encoded_image_string, positive_id, first_name, last_name, student_id, error_string
-        # If there's an error, return something in the error_string
-        send_string = "{},{},{}_{},{},{}".format(
-            encoded_image_string, positive_id, first_name, last_name, student_id, "")
-        print("""\
-Sent back to client:
-    image:       {}
-    positive_id: {}
-    first_last:  {}_{}
-    student_id:  {}
-    error:       {}""".format(result_image_path, positive_id, first_name, last_name, student_id, ""))
-
-        # Send the string back to the client
-        self.write_message(send_string)
 
     def on_close(self):
         if self.id in clients:
@@ -209,7 +232,7 @@ Sent back to client:
 class WebSocketStudent(tornado.websocket.WebSocketHandler):
     # TODO
     """
-    What does this do?
+    Sends new student information, in the form of "first_name, last_name, student_id"
     """
 
     def open(self, *args):
@@ -219,12 +242,13 @@ class WebSocketStudent(tornado.websocket.WebSocketHandler):
     def on_message(self, message):
         message = message.split(',')
         # id = message[0]
-        first = message[0]
-        last = message[1]
-        print("First name: " + first)
-        print("Last name: " + last)
+        first_name = message[0]
+        last_name = message[1]
+        student_id = message[2]
+        print("First name: " + first_name)
+        print("Last name: " + last_name)
         self.write_message("SUCCESS")
-        # TODO uncomment when ready write_new(id, first, last)
+        koh_api.write_new(first_name, last_name, student_id)
 
     def on_close(self):
         print("Closed")

@@ -19,6 +19,7 @@ clients = dict()
 settings = {
     "static_path": os.path.join(os.path.dirname(__file__), "static"),
 }
+id = 0
 
 
 def main():
@@ -118,14 +119,24 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
         with open(os.path.dirname(__file__) + "/" + "saved_faces/student811699925.000.jpg", "rb") as image_file:
             encoded_string = base64.b64encode(image_file.read())
 
-        first_name = ""
-        last_name = ""
-        identified = True
-        student_name = "{}_{}".format(first_name, last_name)
-        student_id = ""
+        """TODO Use opencv to determine if recognized (ie. returns id)
+            With id call database to get first and last get_name(id)"""
+        recognized = False
+        first = "Charlie"
+        last = "Steenhagen"
 
-        # FORMAT: Image, True/False, Name, ID
-        send_string = "{},{},{},{}".format(encoded_string, identified, student_name, student_id)
+        """send_string = "{},Charlie_Steenhagen".format(encoded_string)"""
+        send_string = "{},{},{}_{},{}".format(encoded_string, recognized, first, last, id)
+
+        # first_name = ""
+        # last_name = ""
+        # identified = True
+        # student_name = "{}_{}".format(first_name, last_name)
+        # student_id = ""
+        #
+        # # FORMAT: Image, True/False, Name, ID
+        # send_string = "{},{},{},{}".format(encoded_string, identified, student_name, student_id)
+
         self.write_message(send_string)
 
     def on_close(self):
@@ -140,12 +151,13 @@ class WebSocketStudent(tornado.websocket.WebSocketHandler):
 
     def on_message(self, message):
         message = message.split(',')
+        # id = message[0]
         first = message[0]
         last = message[1]
         print("First name: " + first)
         print("Last name: " + last)
         self.write_message("SUCCESS")
-        """TODO call database function"""
+        # TODO uncomment when ready write_new(id, first, last)
 
     def on_close(self):
         print("Closed")

@@ -68,8 +68,10 @@ def _handle_koh_result(result):
     # Set send_string properties
     if positive_id:
         first_name, last_name = koh_api.get_name(student_id)
+        koh.train_new_face(student_id, result.numpy_image)
     else:
         first_name, last_name = "", ""
+        koh.queue_face_to_train(student_id, result.numpy_image)
 
     # In case the student isn't found in the database
     if first_name is None or last_name is None:
@@ -245,10 +247,11 @@ class WebSocketStudent(tornado.websocket.WebSocketHandler):
         first_name = message[0]
         last_name = message[1]
         student_id = message[2]
-        print("First name: " + first_name)
-        print("Last name: " + last_name)
-        self.write_message("SUCCESS")
+
         koh_api.write_new(first_name, last_name, student_id)
+        koh.train_queued_face(student_id)
+
+        self.write_message("SUCCESS")
 
     def on_close(self):
         print("Closed")

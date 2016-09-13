@@ -129,6 +129,14 @@ class KohFaceRecognizer:
         scipy.misc.toimage(numpy_image, cmin=0.0, cmax=...).save(file_path)
         return file_path
 
+    def queue_face_to_train(self, student_id, numpy_image):
+        # TODO: Put id and image in a map, queued to train
+        print("DO")
+
+    def train_queued_face(self, student_id):
+        # TODO: Find id in the map, train the image, and remove the map item
+        print("DO")
+
     def train_new_face(self, student_id, numpy_image):
         """
         Used to train the recognizer with a new face. You get numpy_images back

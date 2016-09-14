@@ -22,6 +22,7 @@ __ASYNC_UPLOAD__ = "async_upload/"
 confidence_threshold = 90
 saved_faces_path = "./saved_faces"
 koh = koh_api.KohFaceRecognizer(confidence_threshold, saved_faces_path)
+images_queued_for_deletion = []
 # we gonna store clients in dictionary..
 clients = dict()
 settings = {
@@ -64,11 +65,17 @@ def _handle_koh_result(result):
     result_image_path = koh.save_student_image(result.numpy_image, student_id)
     with open(result_image_path, "rb") as image_file:
         encoded_image_string = base64.b64encode(image_file.read())
+    if result.confidence == 0:
+        # We eventually want to delete anything with confidence 0 because the image
+        # is an exact match for another image already in the library
+        images_queued_for_deletion.append(result_image_path)
 
     # Set send_string properties
     if positive_id:
         first_name, last_name = koh_api.get_name(student_id)
-        koh.train_new_face(student_id, result.numpy_image)
+        if result.confidence != 0:
+            # Don't train the image into koh if it's already in the system
+            koh.train_new_face(student_id, result.numpy_image)
     else:
         first_name, last_name = "", ""
         koh.queue_face_to_train(student_id, result.numpy_image)
@@ -86,13 +93,16 @@ def _handle_koh_result(result):
 Sent back to client:
     image:       {}
     positive_id: {}
-        # Send the string back to the client
-        se
     first_last:  {}_{}
     student_id:  {}
     error:       {}""".format(result_image_path, positive_id, first_name, last_name, student_id, ""))
 
     return send_string
+
+
+def _delete_queued_images():
+    for image in images_queued_for_deletion:
+        os.remove(image)
 
 
 # noinspection PyAbstractClass
@@ -163,6 +173,7 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         self.id = self.get_argument("Id")
         self.stream.set_nodelay(True)
         clients[self.id] = {"id": self.id, "object": self}
+        print("[*] Opened WS {}".format(self.id))
         self.write_message("WebSocket was successfully connected to server!")
 
     def on_message(self, message):
@@ -170,9 +181,10 @@ class WebSocketHandler(tornado.websocket.WebSocketHandler):
         when we receive some message we want some message handler..
         for this example i will just print message to console
         """
-        print("Message received from Client %s : %s" % (self.id, message))
+        print("[*] Message received from Client %s : %s" % (self.id, message))
 
     def on_close(self):
+        print("[*] Closed WS {}".format(self.id))
         if self.id in clients:
             del clients[self.id]
 
@@ -195,6 +207,7 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
         self.id = self.get_argument("Id")
         self.stream.set_nodelay(True)
         clients[self.id] = {"id": self.id, "object": self}
+        print("[*] Opened Image WS {}".format(self.id))
 
     def on_message(self, message):
         message = message.split(',')
@@ -212,6 +225,7 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
 
         # Use koh to detect and predict a face from the image
         results = koh.predict_face(image_file_path)
+        print("Detected {} faces in the image.".format(len(results)))
         for result in results:
             send_string = _handle_koh_result(result)
             self.write_message(send_string)
@@ -219,13 +233,14 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
         # If it didn't detect a face at all...
         if len(results) == 0:
             send_string = "{},{},{}_{},{},{}".format("", False, "", "", 0, "Unable to detect a face in this image!")
-            print("Unable to detect a face in the image!")
             self.write_message(send_string)
 
-        # Clean things up by deleting the upload file
+        # Clean things up by deleting unnecessary images
         os.remove(image_file_path)
+        _delete_queued_images()
 
     def on_close(self):
+        print("[*] Closed Image WS {}".format(self.id))
         if self.id in clients:
             del clients[self.id]
 
@@ -238,8 +253,7 @@ class WebSocketStudent(tornado.websocket.WebSocketHandler):
     """
 
     def open(self, *args):
-        # self.id = self.get_argument("Id")
-        print("open student ws")
+        print("[*] Open NewStudent WS")
 
     def on_message(self, message):
         message = message.split(',')
@@ -249,12 +263,12 @@ class WebSocketStudent(tornado.websocket.WebSocketHandler):
         student_id = message[2]
 
         koh_api.write_new(first_name, last_name, student_id)
-        koh.train_queued_face(student_id)
+        koh.train_queued_face(int(student_id))
 
         self.write_message("SUCCESS")
 
     def on_close(self):
-        print("Closed")
+        print("[*] Closed NewStudent WS")
 
 
 if __name__ == '__main__':

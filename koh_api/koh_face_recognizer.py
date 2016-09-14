@@ -63,7 +63,10 @@ class KohFaceRecognizer:
 
         # For face detection
         self.faceCascade = cv2.CascadeClassifier(cascade_path)
+
+        # For training
         self.saved_faces_path = saved_faces_path
+        self.training_queue = dict()
 
         # For face recognition
         self.recognizer = cv2.face.createLBPHFaceRecognizer()
@@ -130,12 +133,10 @@ class KohFaceRecognizer:
         return file_path
 
     def queue_face_to_train(self, student_id, numpy_image):
-        # TODO: Put id and image in a map, queued to train
-        print("DO")
+        self.training_queue[student_id] = numpy_image
 
     def train_queued_face(self, student_id):
-        # TODO: Find id in the map, train the image, and remove the map item
-        print("DO")
+        self.train_new_face(student_id, self.training_queue[student_id])
 
     def train_new_face(self, student_id, numpy_image):
         """

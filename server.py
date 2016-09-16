@@ -37,11 +37,9 @@ def main():
     # This  part is the key to success. We have to redirect the websocket calls to a different URL ex//: /websocket
     app = tornado.web.Application([
         (r'/', IndexHandler),
-        (r'/websocket', WebSocketHandler),
-        (r'/uploads', Upload),
         (r"/(apple-touch-icon\.png)", tornado.web.StaticFileHandler, dict(path=settings['static_path'])),
         (r'/websocket_image', WebSocketImage),
-        (r'/websocket_newstudent', WebSocketStudent),
+        (r'/websocket_newstudent', WebSocketNewStudent),
         (r'.*', BadRequestHandler)
     ], **settings)
     parse_command_line()
@@ -126,77 +124,6 @@ class BadRequestHandler(tornado.web.RequestHandler):
 
 
 # noinspection PyAbstractClass
-class Upload(tornado.web.RequestHandler):
-    # TODO
-    """
-    What does this do?
-    """
-    def post(self):
-        # noinspection SpellCheckingInspection
-        file_info = self.request.files['filearg'][0]
-        print("file_info is", file_info)
-        f_name = file_info['filename']
-        extn = os.path.splitext(f_name)[1]
-        c_name = str(uuid.uuid4()) + extn
-        if not os.path.isdir(os.path.dirname(__file__) + __UPLOADS__):
-            os.mkdir(os.path.dirname(__file__) + __UPLOADS__)
-
-        image_file_path = os.path.dirname(__file__) + __UPLOADS__ + c_name
-        fh = open(image_file_path, 'wb')
-        fh.write(file_info['body'])
-        self.redirect("/")      # Sends the url back
-        #
-        # # Use koh to detect and predict a face from the image
-        # results = koh.predict_face(image_file_path)
-        # for result in results:
-        #     send_string = _handle_koh_result(result)
-        #     self.write_message(send_string)
-        #
-        # # If it didn't detect a face at all...
-        # if len(results) == 0:
-        #     send_string = "{},{},{}_{},{},{}".format("", False, "", "", 0, "Unable to detect a face in this image!")
-        #     self.write_message(send_string)
-        #
-        # # Clean things up by deleting the upload file
-        # os.remove(image_file_path)
-
-
-# noinspection PyAbstractClass
-class WebSocketHandler(tornado.websocket.WebSocketHandler):
-    # TODO
-    """
-    What does this do?
-    """
-
-    def open(self, *args):
-        # noinspection PyAttributeOutsideInit
-        self.id = self.get_argument("Id")
-        self.stream.set_nodelay(True)
-        clients[self.id] = {"id": self.id, "object": self}
-        print("[*] Opened WS {}".format(self.id))
-        self.write_message("WebSocket was successfully connected to server!")
-
-    def on_message(self, message):
-        """
-        when we receive some message we want some message handler..
-        for this example i will just print message to console
-        """
-        print("[*] Message received from Client %s : %s" % (self.id, message))
-
-    def on_close(self):
-        print("[*] Closed WS {}".format(self.id))
-        if self.id in clients:
-            del clients[self.id]
-
-    def send_message_to_client(self, message):
-        """
-        The given message prints to the browser console.
-        :param message: The text you want to send.
-        """
-        self.write_message(message)
-
-
-# noinspection PyAbstractClass
 class WebSocketImage(tornado.websocket.WebSocketHandler):
     """
     Handles incoming images that need to be identified by Koh.
@@ -207,7 +134,7 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
         self.id = self.get_argument("Id")
         self.stream.set_nodelay(True)
         clients[self.id] = {"id": self.id, "object": self}
-        print("[*] Opened Image WS {}".format(self.id))
+        print("[*] Opened Image WS")
 
     def on_message(self, message):
         message = message.split(',')
@@ -240,13 +167,13 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
         _delete_queued_images()
 
     def on_close(self):
-        print("[*] Closed Image WS {}".format(self.id))
+        print("[*] Closed Image WS")
         if self.id in clients:
             del clients[self.id]
 
 
 # noinspection PyAbstractClass
-class WebSocketStudent(tornado.websocket.WebSocketHandler):
+class WebSocketNewStudent(tornado.websocket.WebSocketHandler):
     # TODO
     """
     Sends new student information, in the form of "first_name, last_name, student_id"

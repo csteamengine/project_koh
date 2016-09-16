@@ -83,7 +83,7 @@ def _handle_koh_result(result):
         first_name, last_name = "", ""
         positive_id = False
 
-    # send_string format: encoded_image_string, positive_id, first_name, last_name, student_id, error_string
+    # send_string format: encoded_image_string, positive_id, first + "_" + last, student_id, error_string
     # If there's an error, return something in the error_string
     send_string = "{},{},{}_{},{},{}".format(
         encoded_image_string, positive_id, first_name, last_name, student_id, "")

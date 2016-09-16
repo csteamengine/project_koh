@@ -137,7 +137,7 @@
 
             <button id="take_snapshot_button"><a id="take_snapshot" href="javascript:void(take_snapshot())"
                                                  style="text-decoration: none; color: black;">Take Snapshot</a></button>
-            <button id="webcam_identify" onclick="send_webcam_photo()" hidden>Identify</button>
+            <button id="webcam_identify" onclick="handle_identify_button_pressed()" hidden>Identify</button>
             <button id="cancel_webcam" onclick="cancel_snapshot()" hidden>Cancel</button>
 
             <div id="upload_button">
@@ -192,9 +192,6 @@
 
 </div>
 
-<script language="JavaScript">
-
-</script>
 </body>
 
 <script type="text/javascript">
@@ -232,7 +229,7 @@
 
     $("#form1").submit(function (e) {
         e.preventDefault();
-        readURL();
+        handle_upload_form_submitted();
     });
 
     $('#imgInp').change(function () {

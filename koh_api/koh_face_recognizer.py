@@ -59,7 +59,8 @@ class KohFaceRecognizer:
     """
 
     def __init__(self, confidence_threshold, saved_faces_path):
-        print("Initializing KohFaceRecognizer:\n    confidence_threshold = {}\n    saved_faces_path = {}".format(confidence_threshold, saved_faces_path))
+        print("Initializing KohFaceRecognizer:\n    confidence_threshold = {}\n    saved_faces_path = {}".format(
+            confidence_threshold, saved_faces_path))
 
         # For face detection
         self.faceCascade = cv2.CascadeClassifier(cascade_path)
@@ -110,20 +111,8 @@ class KohFaceRecognizer:
         :param student_id:
         :return: The path to the file that was saved.
         """
-        # Get existing file names for this student
-        existing_image_file_names = [f for f in os.listdir(self.saved_faces_path)
-                                     if f.startswith("student{}.".format(student_id))]
-        # Next we'll parse the image sequence numbers out of the file names
-        existing_image_numbers = []
-        for path in existing_image_file_names:
-            try:
-                n = int(path.split(".")[1])
-                existing_image_numbers.append(n)
-            except ValueError:
-                print("The saved face file {} was skipped because it wasn't in the right format.".format(path))
-                continue
-        # Get the max number, and add 1 for the new image number
-        new_image_number = max(existing_image_numbers, default=-1) + 1
+        # Get the max image sequence number, and add 1 for the new image number
+        new_image_number = self._get_max_image_number(student_id) + 1
         # Format the number as a string with zeros for padding
         number_string = format(new_image_number, "0{}".format(saved_image_sequence_padding))
         # Save the file
@@ -137,6 +126,46 @@ class KohFaceRecognizer:
 
     def train_queued_face(self, student_id):
         self.train_new_face(student_id, self.training_queue[student_id])
+
+    def reidentify_queued_face(self, old_id, new_id):
+        # Rename the image file
+        numpy_image = self.training_queue[old_id]
+        self._rename_image_file(old_id, new_id, numpy_image)
+
+        # Update the key for the numpy_image in the training_queue
+        self.training_queue[new_id] = numpy_image
+        del self.training_queue[old_id]
+
+    def _get_max_image_number(self, student_id):
+        # Get existing file names for this student
+        existing_image_file_names = [f for f in os.listdir(self.saved_faces_path)
+                                     if f.startswith("student{}.".format(student_id))]
+        # Next we'll parse the image sequence numbers out of the file names
+        existing_image_numbers = []
+        for path in existing_image_file_names:
+            try:
+                n = int(path.split(".")[1])
+                existing_image_numbers.append(n)
+            except ValueError:
+                print("The saved face file {} was skipped because it wasn't in the right format.".format(path))
+                continue
+        # Return the max image sequence number
+        return max(existing_image_numbers, default=-1)
+
+    def _rename_image_file(self, old_id, new_id, numpy_image):
+        # Get the max image sequence number that exists (the last one saved)
+        old_img_sequence_number = self._get_max_image_number(old_id)
+
+        # Format the number as a string with zeros for padding
+        number_string = format(old_img_sequence_number, "0{}".format(saved_image_sequence_padding))
+
+        # Remove the old file
+        old_filename = "student{}.{}.jpg".format(old_id, number_string)
+        old_file_path = "{}/{}".format(self.saved_faces_path, old_filename)
+        os.remove(old_file_path)
+
+        # Save the new file
+        self.save_student_image(numpy_image, new_id)
 
     def train_new_face(self, student_id, numpy_image):
         """

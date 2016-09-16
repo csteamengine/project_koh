@@ -183,14 +183,16 @@ class WebSocketNewStudent(tornado.websocket.WebSocketHandler):
         print("[*] Open NewStudent WS")
 
     def on_message(self, message):
-        message = message.split(',')
-        # id = message[0]
-        first_name = message[0]
-        last_name = message[1]
-        student_id = message[2]
+        first_name, last_name, student_id = message.split(',')
 
-        koh_api.write_new(first_name, last_name, student_id)
-        koh.train_queued_face(int(student_id))
+        # If the student is already in the database, use THAT student_id instead
+        database_id = koh_api.get_id(first_name, last_name)
+        if database_id:
+            koh.reidentify_queued_face(int(student_id), int(database_id))
+            koh.train_queued_face(int(database_id))
+        else:
+            koh_api.write_new(first_name, last_name, student_id)
+            koh.train_queued_face(int(student_id))
 
         self.write_message("SUCCESS")
 

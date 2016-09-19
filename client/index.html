@@ -120,6 +120,7 @@
                 </tr>
             </table>
             <button id="close_display_student">Close</button>
+            <p id="wrong_student" onclick="wrong_student_identified()">Wrong Student?</p>
         </div>
         <div id="webcam" class="display_box">
             <div id="my_camera" class="image_display"></div>
@@ -237,7 +238,6 @@
     });
 
     $("#cancel").click(function () {
-        //TODO send cancel response to server
         $("#myModal").css("display", "none");
     });
 

@@ -71,6 +71,13 @@ function handle_prediction_results_from_server(data){
 
 }
 
+function wrong_student_identified() {
+    var img = $("#my_result").data;
+    var id = $("#id").val;
+
+    display_student_identification_modal(id, img);
+}
+
 function trim_base64(data){
 
     var img = data;

@@ -12,7 +12,6 @@ br {
 
 /* The Modal (background) */
 .modal {
-    display: none; /* Hidden by default */
     position: fixed; /* Stay in place */
     z-index: 1; /* Sit on top */
     padding-top: 100px; /* Location of the box */
@@ -38,6 +37,10 @@ br {
     -webkit-animation-duration: 0.4s;
     animation-name: animatetop;
     animation-duration: 0.4s
+}
+
+.modal-image {
+    height: 100px;
 }
 
 /* Add Animation */
@@ -151,19 +154,15 @@ a:hover{
 
 #result_table{
     margin: 0 auto 20px;
-
 }
 
-#webcam{
-
+#error-messages {
+    color: red;
+    background-color: #252839;
+    border: 1px solid #f2b632;
+    border-radius: 10px;
+    font-size: x-large;
+    font-weight: bolder;
+    padding: 10px;
+    margin: 0 auto;
 }
-
-#upload_div{
-
-}
-#result{
-
-}
-
-
-

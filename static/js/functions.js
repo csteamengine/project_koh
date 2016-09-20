@@ -4,12 +4,7 @@
 
 function cancel_snapshot(){
     $('#result_image').remove();
-    $('#webcam_identify').hide();
-    $('#cancel_webcam').hide();
-    $('#upload_button').show();
-    $('#my_camera').show();
-    $('#take_snapshot_button').show();
-    $('#my_result').hide();
+    returnToWebcam(false);
 }
 
 function changeImg(input) {
@@ -58,7 +53,10 @@ function handle_prediction_results_from_server(data){
     var student_id = split_data[3];
     var error_message = split_data[4];
 
-    if(bool == "True"){
+    if (error_message == "ERROR_NO_FACES_DETECTED") {
+        returnToWebcam(true);
+    } else if (bool == "True") {
+        $('#webcam_div').hide();
         $('#result').show();
         var f_name = name[0];
         var l_name = name[1];
@@ -72,38 +70,33 @@ function handle_prediction_results_from_server(data){
 }
 
 function wrong_student_identified() {
-    var img = $("#my_result").data;
+    var img = $("#snapshot_result").data;
     var id = $("#id").val;
 
     display_student_identification_modal(id, img);
 }
 
 function trim_base64(data){
-
     var img = data;
     img = img.replace('\'', '');
     img = img.substr(0,img.length -1);
     img = img.substr(1);
     img =  'data:image/jpeg;base64,' + img;
     return img;
-
 }
 
 function display_student_identification_modal(student_id, encoded_img){
-    var modal = document.getElementById('myModal');
     // When the user clicks on the button, open the modal
-    modal.style.display = "block";
+    $('#myModal').show();
     $('#id').val(student_id);
     var img = trim_base64(encoded_img);
-    $('#model_image').attr('src', img);
-
+    $('#modal_image').attr('src', img);
 }
 
 function take_snapshot() {
     Webcam.snap(function (data_uri) {
-        document.getElementById('my_result').innerHTML = '<img id="result_image" src="' + data_uri + '"/>';
+        document.getElementById('snapshot_result').innerHTML = '<img id="result_image" src="' + data_uri + '"/>';
     });
-
 }
 
 function send_newstudent(first, last, id) {
@@ -115,12 +108,12 @@ function send_newstudent(first, last, id) {
     ws_newstudent.onmessage = function (evt) {
         console.log(evt.data);
         if (evt.data === "SUCCESS") {
-            $("#myModal").css("display", "none");
+            $("#myModal").hide();
         }
         ws_newstudent.close();
     };
 
-    var string = $('#model_image').attr('src') + ",webcamPhoto.jpg" ;
+    var string = $('#modal_image').attr('src') + ",webcamPhoto.jpg" ;
     var image_ws = new WebSocket("ws://localhost:8888/websocket_image?Id=123456789");
     image_ws.onopen = function(){
         image_ws.send(string);

@@ -159,7 +159,7 @@ class WebSocketImage(tornado.websocket.WebSocketHandler):
 
         # If it didn't detect a face at all...
         if len(results) == 0:
-            send_string = "{},{},{}_{},{},{}".format("", False, "", "", 0, "Unable to detect a face in this image!")
+            send_string = "{},{},{}_{},{},{}".format("", False, "", "", 0, "ERROR_NO_FACES_DETECTED")
             self.write_message(send_string)
 
         # Clean things up by deleting unnecessary images

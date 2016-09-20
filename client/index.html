@@ -6,14 +6,14 @@
     <title>Koh Face Recognizer</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <script src="/static/jquery-3.1.0.min.js" type="application/javascript"></script>
-    <script src="/static/js/functions.js"></script>
-    <script src="/static/js/webcam.js"></script>
 </head>
 <body>
 
 <div id="content">
-
     <div id="grid">
+
+        <!-----------------------------RESULT-------------------------------->
+
         <div id="result" class="display_box" hidden>
             <img id="student_display" class="image_display">
             <table id="result_table">
@@ -26,54 +26,55 @@
                     <td id="last_name"></td>
                 </tr>
             </table>
-            <button id="close_display_student">Close</button><br>
+            <button id="close_display_student">Close</button>
+            <br>
             <a id="wrong_student" onclick="wrong_student_identified()">Wrong Student?</a>
         </div>
-        <div id="webcam" class="display_box">
-            <div id="my_camera" class="image_display"></div>
-            <div id="my_result" class="image_display" hidden></div>
-            <script language="JavaScript">
-                Webcam.attach('#my_camera');
 
-                function take_snapshot() {
-                    Webcam.snap(function (data_uri) {
-                        document.getElementById('my_result').innerHTML = '<img id="result_image" src="' + data_uri + '"/>';
-                    });
+        <!-----------------------------WEBCAM-------------------------------->
 
-                }
-            </script>
+        <div id="webcam_div" class="display_box">
+            <!--------------BEFORE SNAPSHOT IS TAKEN--------------->
+            <div id="snapshot-or-upload">
+                <div id="my_camera" class="image_display"></div>
+                <button id="take_snapshot">Take Snapshot</button>
+                or
+                <button id="open_upload">Upload a File</button>
+            </div>
 
-            <button id="take_snapshot_button"><a id="take_snapshot" href="javascript:void(take_snapshot())"
-                                                 style="text-decoration: none; color: black;">Take Snapshot</a></button>
-            <button id="webcam_identify" onclick="handle_identify_button_pressed()" hidden>Identify</button>
-            <button id="cancel_webcam" onclick="cancel_snapshot()" hidden>Cancel</button>
-
-            <div id="upload_button">
-                <h2>Or</h2>
-                <button id="open_upload">Upload A File</button>
-
-
+            <!--------------AFTER SNAPSHOT IS TAKEN--------------->
+            <div id="snapshot-options" hidden>
+                <div id="snapshot_result" class="image_display"></div>
+                <button id="webcam_identify" onclick="handle_identify_button_pressed()">Identify</button>
+                <button id="cancel_webcam" onclick="cancel_snapshot()">Cancel</button>
             </div>
         </div>
+
+        <!-----------------------------UPLOAD-------------------------------->
+
         <div id="upload_div" class="display_box" hidden>
             <img id="upload_img" src="#" class="image_display" alt="Image to Upload"/>
-            <form id="form1">
-                <input type='file' id="imgInp"/>
+            <form id="upload_form">
+                <input type='file' id="image_input"/>
                 <input type="submit" id="submit_upload" value="Upload">
             </form>
-            <div id="snapshot_button">
-                <h2>Or</h2>
-                <button id="close">Take a Snapshot</button>
-            </div>
-
+            or
+            <button id="close_upload">Take a Snapshot</button>
         </div>
 
+        <!-----------------------------ERROR MESSAGES------------------------>
+
+        <div id="error-messages" hidden>
+            <div id="error_no_faces_detected" class="error" hidden>
+                No faces detected in image!
+            </div>
+        </div>
     </div>
 
 </div>
 
 <!-- The Modal -->
-<div id="myModal" class="modal">
+<div id="myModal" class="modal" hidden>
 
     <!-- Modal content -->
     <div class="modal-content">
@@ -83,12 +84,13 @@
         </div>
         <div class="modal-body">
             <form id="studentForm">
-                <img id="model_image" style="height: 100px;">
+                <img id="modal_image">
                 <br>
-                <p style="display: inline; width: 15%; padding-right: 10px">First Name:</p>
+                <label>First Name:</label>
                 <input type="text" id="first" maxlength="30" required autofocus>
                 <br>
-                <p style="display: inline; width: 15%; padding-right: 12px">Last Name:</p>
+                <!--<p style="display: inline; width: 15%; padding-right: 12px">Last Name:</p>-->
+                <label>Last Name:</label>
                 <input type="text" id="last" maxlength="30" required>
                 <br>
                 <input type="hidden" id="id" value="" required>
@@ -102,51 +104,22 @@
 
 </body>
 
+<script src="/static/js/functions.js"></script>
+<script src="/static/js/webcam.js"></script>
 <script type="text/javascript">
     Webcam.attach('#my_camera');
 
-    // Get the modal
-    var modal = document.getElementById('myModal');
-
-    // Get the button that opens the modal
-    var btn = document.getElementById("myBtn");
-
-    // Get the <span> element that closes the modal
-    var span = document.getElementsByClassName("close")[0];
-
-    // When the user clicks on <span> (x), close the modal
-    span.onclick = function () {
-        modal.style.display = "none";
-    }
-
-    // When the user clicks anywhere outside of the modal, close it
-    window.onclick = function (event) {
-        if (event.target == modal) {
-            modal.style.display = "none";
-        }
-    }
+    // TAKING A SNAPSHOT
 
     $('#take_snapshot').click(function () {
-        $('#webcam_identify').show();
-        $('#cancel_webcam').show();
-        $('#upload_button').hide();
-        $('#my_camera').hide();
-        $('#take_snapshot_button').hide();
-        $('#my_result').show();
+        take_snapshot();
+        $('#snapshot-or-upload').hide();
+        $('#snapshot-options').show();
+        $('#error-messages').hide();
     });
 
-    $("#form1").submit(function (e) {
-        e.preventDefault();
-        handle_upload_form_submitted();
-    });
 
-    $('#imgInp').change(function () {
-        changeImg(this);
-    });
-
-    $("#cancel").click(function () {
-        $("#myModal").css("display", "none");
-    });
+    // SUBMITTING NEW STUDENT INFORMATION
 
     $("#studentForm").submit(function (e) {
         e.preventDefault();
@@ -157,23 +130,65 @@
     });
 
 
-
-    $('#close_display_student').click(function () {
-        $('#result').hide();
-    });
-
+    // UPLOADING A FILE
 
     $('#open_upload').click(function () {
         $('#upload_div').show();
-        $('#open_upload').hide();
-        $('#webcam').hide();
+        $('#webcam_div').hide();
+        $('#error-messages').hide();
+    });
+
+    $('#image_input').change(function () {
+        changeImg(this);
+    });
+
+    $("#upload_form").submit(function (e) {
+        e.preventDefault();
+        handle_upload_form_submitted();
     });
 
 
-    $('#close').click(function hide_upload() {
+    // CANCEL AND CLOSE BUTTONS
+
+    function returnToWebcam(noFaces) {
+        // Hide all other divs
+        $('#mymodal').hide();
+        $('#result').hide();
         $('#upload_div').hide();
-        $('#open_upload').show();
-        $('#webcam').show();
+        // Return to state before snapshot was taken
+        $('#webcam_div').show();
+        $('#snapshot-or-upload').show();
+        $('#snapshot-options').hide();
+        // If an error needs to be displayed...
+        if (noFaces == true) {
+            $('#error-messages').show();
+            $('#error_no_faces_detected').show();
+        }
+    }
+
+    $('#close_upload').click(function () {
+        returnToWebcam(false);
     });
+
+    $('#close_display_student').click(function () {
+        returnToWebcam(false);
+    });
+
+    $("#cancel").click(function () {
+        returnToWebcam(false);
+    });
+
+    // When the user clicks on <span> (x), close the modal
+    $('.close')[0].onclick = function () {
+        returnToWebcam(false);
+    };
+
+    // When the user clicks anywhere outside of the modal, close it
+    window.onclick = function (event) {
+        var modal = $('#myModal');
+        if (event.target == modal) {
+            modal.hide();
+        }
+    };
 </script>
 </html>

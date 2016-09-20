@@ -66,7 +66,6 @@ function handle_prediction_results_from_server(data){
     }else{
         display_student_identification_modal(student_id, img);
     }
-
 }
 
 function wrong_student_identified() {
@@ -89,8 +88,9 @@ function display_student_identification_modal(student_id, encoded_img){
     // When the user clicks on the button, open the modal
     $('#myModal').show();
     $('#id').val(student_id);
-    var img = trim_base64(encoded_img);
-    $('#modal_image').attr('src', img);
+    // var img = trim_base64(encoded_img);
+    // $('#modal_image').attr('src', img);
+    $('#modal_image').attr('src', encoded_img);
 }
 
 function take_snapshot() {

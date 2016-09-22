@@ -19,7 +19,7 @@ __ASYNC_UPLOAD__ = "async_upload/"
 # A lower confidence value means it's a closer match. So everything less than
 # confidence_threshold will constitute a match, and everything above it will
 # mean it's not a match.
-confidence_threshold = 90
+confidence_threshold = 80
 saved_faces_path = "./saved_faces"
 koh = koh_api.KohFaceRecognizer(confidence_threshold, saved_faces_path)
 images_queued_for_deletion = []

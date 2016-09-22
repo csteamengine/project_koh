@@ -15,6 +15,20 @@ been identified, it gives the professor the opportunity to
 enter the student’s name so he or she will be identified in the
 future.
 
+## Screenshots
+
+These first two pictures illustrate a user training a new face
+into the system.
+
+![Koh Screenshot 1](screenshots/koh_screenshot_1.png)
+![Koh Screenshot 2](screenshots/koh_screenshot_2.png)
+
+The next pictures show the system recognizing that user and
+displaying his name on the screen.
+
+![Koh Screenshot 3](screenshots/koh_screenshot_3.png)
+![Koh Screenshot 4](screenshots/koh_screenshot_4.png)
+
 ## Discussion
 
 Project Koh will be a cloud based software system that houses
@@ -98,12 +112,3 @@ International Justice League of Super Acquaintances
 - Gregory Steenhagen
 
 ![International Justice League of Super Acquaintances](IJLSA.jpg)
-
-# Frameworks
-    - Socket IO - Javascript socket framework.
-        - To use, first install nodeJS
-        - Then run
-            ```
-            npm install socket.io
-            ```
-
